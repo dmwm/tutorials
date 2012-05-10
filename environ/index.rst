@@ -1,31 +1,15 @@
 DMWM development environment
 ============================
 
-Virtual machine setup
----------------------
-
-Developing against RPMs
------------------------
-
-Managing changes with stg and git
----------------------------------
-
-Generating documentation using sphinx
--------------------------------------
-
-Checking code style with lint
------------------------------
-
-Patch review and you
---------------------
-
-DMWM build process
-------------------
-
-SSH tunneling
--------------
-
-.. reference subdocuments below once split off this page
 .. toctree::
    :numbered:
-   :maxdepth: 1
+   :maxdepth: 2
+
+   vm-setup
+   rpm-dev
+   dev-git
+   doc-sphinx
+   style-lint
+   patch-review
+   dmwm-build
+   ssh-tunneling
