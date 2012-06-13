@@ -4,7 +4,190 @@ Virtual machine setup
 CERN VMM virtual machine
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Follow the `HTTP group dev-vm instructions <https://cern.ch/cms-http-group/dev-vm.html>`_.
+1. Request a VM from VMM
+
+   Go to `vmm.cern.ch <https://vmm.cern.ch>`_, click "Request a Virtual Machine",
+   and fill in the fields as follows. Submit the request and wait for an e-mail
+   telling you the machine is ready. If you need to share the VM with other users,
+   create an e-group and set it as the owner, and all the accounts in that
+   e-group will be able to ssh and sudo on the VM.
+
+   * Owner and main user: you
+   * Name and description: (something pertinent)
+   * Operating system: SLC5 - x86_64
+   * Memory 2 GB (**not** less!), CPUs: 1
+
+|
+
+2. Request proxy renewal rights for your VM
+
+   *This step is optional.*
+
+   If your server needs a proxy certificate to work, request the host to be
+   included in myproxy.cern.ch. Write a message something like the one below,
+   where HOSTNAME is the full host nameas shown by ``hostname -f``. Run 
+   ``openssl x509 -in /etc/grid-security/hostcert.pem -noout -subject``
+   and verify the host certificate is correct in the message body! The request
+   usually takes one to several days to fulfill. In the mean time you can continue
+   to use the machine, but you have to renew the proxy manually as per *step 8*. ::
+
+       From: Your Name <you@cern.ch>
+       To: px.support@cern.ch
+       Cc: cms-service-webtools@cern.ch
+       Subject: myproxy registration request for HOSTNAME
+
+       Could you please add the following host certificate to myproxy.cern.ch
+       trusted_retrievers, authorized_retrievers, authorized_renewers policy?
+       This is a development server for CMS web services and requires use of
+       grid proxy certificates.
+
+       /DC=ch/DC=cern/OU=computers/CN=HOSTNAME
+
+       Regards,
+       Your Name
+
+3. Basic system install
+
+   SSH to your VM and run the following commands to do basic system setup.
+   It requests a host certificate using your ``~/.globus/user{cert,key}.pem``,
+   so make sure those files are up to date. Running ``Deploy`` will ask for 
+   the CMSSW CVS password and your user certificate password. If your 
+   certificate was issued by an authority other than CERN CA, `associate 
+   your CERN account to the certificate 
+   <https://ca.cern.ch/ca/Certificates/MapCertificate.aspx>`_ before attempting
+   to run this step.::
+
+       mkdir -p /tmp/foo
+       cd /tmp/foo
+       git clone git://github.com/geneguvo/deployment.git cfg
+       sudo -l  # this is so the following won't prompt
+       cfg/Deploy -t dummy -s post $PWD system/devvm
+       # OPTIONAL: review what happened: less /tmp/foo/.deploy/*
+       rm -fr /tmp/foo
+
+
+4. Log out
+
+   Log out. You may optionally reboot the server, but it isn’t necessary.
+
+   If you use SSH persistent connections, be sure to terminate the master
+   connection before logging in again. The commands in *step 3* modify
+   users and groups, and it’s important they apply when you execute the
+   next steps. This requires completely new log-in, and using persistent
+   SSH connections may cause you to use cached credentials.
+
+
+5. Get configuration
+
+   SSH into your VM again. Run the following. *NOTE:* From now on the
+   commands assume you just stay logged in, usually with $PWD at ``/data``.::
+
+    cd /data
+    id # should print out large number local _foo groups now
+    git clone git://github.com/geneguvo/deployment.git cfg
+
+
+6. Set up authentication
+
+   *This step is optional.*
+
+   If you develop a server with secrets, grab them now. You only need the
+   secrets for the servers you manage, such as
+   ``/data/auth/t0datasvc/connect``. However you do not need this at all – you
+   can just run *step 7*, which will then create dummy auth info, which
+   you can then overwrite with real data, *in step 10*. If you *do* create
+   the auth directory, it must be adequately protected and ``_sw`` group
+   readable, so do run all the chmod/chgrp commands shown below. ::
+
+    mkdir -p /data/auth
+    mkdir -p /data/auth/myservice
+    vi /data/auth/myservice/mysecret # e.g. /data/auth/t0datasvc/connect
+    # or grab them all:
+    # rsync -avu cmsweb@lxplus.cern.ch:private/conf/ /data/auth/
+    chgrp -R _sw /data/auth
+    chmod ug=r,o-rwx $(find /data/auth -type f)
+    chmod u=rwx,g=rx,o-rwx $(find /data/auth -type d)
+
+   Note that you normally create the info by hand, instead of copying from
+   the cmsweb account as only the admins can do the latter. The important
+   thing is you set up directory structure ``/data/auth`` with the secrets
+   info that you need, for only those services you plan to install. So you
+   obviously know what to put in there.
+
+
+7. Software installation
+
+   The following installs standard multi-account setup using the RPMs from
+   the ``comp.pre`` repository, where its versions come from the ``cmsweb``
+   release ``1207a``. You could overwrite specific service versions using 
+   *@theversion* following each service name. I.e. ``t0mon@4.2.11-comp4``.
+
+   Note you will be asked for the privkey passphrase in case your service
+   requires a proxy certificate to work.
+
+   If you did not do *step 6*, drop the ``-a $PWD/auth`` option. ::
+
+    A=/data/cfg/admin REPO="-r comp=comp.pre" VER=1207a
+    cd /data
+    $A/InstallDev -R cmsweb@$VER -s image -v hg$VER -a $PWD/auth $REPO -p "admin frontend t0datasvc t0mon"
+    $A/InstallDev -s start
+
+   To install the full set of services use the ``-p`` argument with:
+   ``admin frontend couchdb das dbs dqmgui filemover mongodb phedex overview 
+   sitedb/legacy stagemanager t0datasvc t0mon reqmgr workqueue crabserver 
+   crabcache reqmon``
+
+
+8. Proxy renewal
+
+   *This step is optional.*
+
+   On deployments of services that require a proxy certificate to work, the
+   procedure in the previous step uploads the user credentials to myproxy
+   that are valid for one month (aka long term proxy). The VM, in turn, 
+   will keep renewing a short term proxy until the long term one expires.
+
+   You will get mail notifications days before it expires, though.
+   Upon reception of such messages, run the procedure below to renew the 
+   long term proxy. If your request in *step 2* has not been handled yet,
+   you'll need to run it every 36 hours until the machine gets included
+   into myproxy.cern.ch. You can also run it at any time even when
+   the proxy is not yet about to expire. :: 
+
+    cd /data
+    $PWD/cfg/admin/ProxySeed -t dev -d $PWD/1207a/auth/proxy
+
+
+9. Manage servers
+
+   Check server status, start servers using these commands: ::
+
+    cd /data
+    $PWD/cfg/admin/InstallDev -s status
+    $PWD/cfg/admin/InstallDev -s start
+
+
+10. Clean up
+
+   To clean up state, create VM snapshots and roll back to suitable point
+   in time, scrap the VM and recreate it, or use the following commands to
+   roll things back to where they were until *step 7*. **WARNING:** The rm
+   command will wipe out almost everything on /data – **MAKE SURE** you run
+   it in right place, and want to run it! ::
+
+    cd /data
+    $PWD/cfg/admin/InstallDev -s stop
+    crontab -r
+    killall python
+    sudo rm -fr [^aceu]* .??* current enabled
+
+11. Develop server
+
+   Repeat steps *7* to *10* for any new software
+   versions. You can use private RPM repository such as ``comp.pre.yourlogin``
+   to exercise builds which haven’t been synced back to comp.pre yet. See
+   :ref:`developing-against-rpms` for details on how to upload to private
+   repositories.
 
 Local virtual machine
 ^^^^^^^^^^^^^^^^^^^^^

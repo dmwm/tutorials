@@ -1,3 +1,5 @@
+.. _developing-against-rpms:
+
 Developing against RPMs
 -----------------------
 
