@@ -2,8 +2,8 @@ DMWM development environment
 ============================
 
 .. toctree::
-   :numbered:
    :maxdepth: 2
+   :titlesonly:
 
    vm-setup
    rpm-dev

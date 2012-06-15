@@ -1,0 +1,3 @@
+The couchskel template application
+----------------------------------
+

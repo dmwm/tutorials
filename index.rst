@@ -3,12 +3,10 @@ DMWM Tutorials
 
 The aims of these tutorials are:
 
- * to ensure a base line understanding across all the tools and technologies
-   in use in DMWM
-
- * to provide a library of information useful to developers new to a subject
-
- * to improve dissemination of information on new tools and technologies
+* to ensure a base line understanding across all the tools and technologies
+  in use in DMWM
+* to provide a library of information useful to developers new to a subject
+* to improve dissemination of information on new tools and technologies
 
 Some tutorials may appear basic, but we hope that all attendees -- including
 the tutor! -- will learn something from each tutorial. The intention is for
