@@ -21,6 +21,7 @@ and other interested parties to attend.
    :maxdepth: 2
 
    environ/index
+   service/index
    style/index
    webtools/index
    couchdb/index
