@@ -1,8 +1,6 @@
 Working with git for CMS DMWM projects
 --------------------------------------
 
-.. _dev-git-part-1:
-
 Creating feature branches and making a pull request
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -89,8 +87,6 @@ Creating feature branches and making a pull request
    <http://help.github.com/send-pull-requests/>
 
 
-.. _dev-git-part-2:
-
 Applying a pull request after a review
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -124,16 +120,16 @@ Applying a pull request after a review
        git merge joebloggs/hg1206-reqmgr-update
        git push origin master
 
-6. Note that other users go back into :ref:`dev-git-part-1`, step 4 to pull
+6. Note that other users go back into
+   `Creating feature branches and making a pull request`_, step 4 to pull
    the changes you have just committed. Also note that git has no single
-   master, so in fact anyone can execute the steps in :ref:`dev-git-part-2`
+   master, so in fact anyone can execute the steps in
+   `Applying a pull request after a review`_
    and push to their own repo, and anyone else can merge those changes. This
    means work can proceed from any repository. In all likelihood we will try
    to keep repositories under 'dmwm' user with current state of the art at all
    times, with multiple committers with the necessary rights.
 
-
-.. _dev-git-part-3:
 
 Converting CMSDMWM SVN repository to github git repository
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -182,8 +178,6 @@ Converting CMSDMWM SVN repository to github git repository
        git remote add github git@github.com:mygit/sitedb.git
        git push --tags -u github svn
 
-
-.. _dev-git-part-4:
 
 Converting filtered CMSDMWM SVN repository
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -7,17 +7,17 @@ Overview
 This page describes how to maintain DM/WM software deployment recipes. All the
 code resides in DM/WM github `deployment <https://github.com/dmwm/deployment>`_.
 For each service there is a sub-directory which contains the deployment script
-``deploy``, server :doc:`management script <ops-manage>`,
-:doc:`monitoring specs <ops-monitor>` and any configuration files except
+``deploy``, server `management script <ops-manage.html>`_,
+`monitoring specs <ops-monitor.html>`_ and any configuration files except
 security-sensitive authentication data.
 
 (Not) making changes to the script
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Please do not commit any changes directly. Please submit tested changes as
-github pull requests as per :doc:`../environ/dev-git` guidelines.
+github pull requests as per `dev-git <../environ/dev-git.html>`_ guidelines.
 All changes pertaining to the service -- deploy
-scripts, :doc:`manage scripts <ops-manage>`, :doc:`monitoring specs <ops-monitor>`
+scripts, `manage scripts <ops-manage.html>`_, `monitoring specs <ops-monitor.html>`_
 and server configuration files -- should be supplied in the pull request. We
 will review your patches, and may request changes. Once they are
 approved, we will commit them to github for you. You should assume progressive
@@ -41,7 +41,7 @@ you want to add to the script, please enquire on the
 
 All application servers run under a separate daemon account. Software and
 configuration is owned by yet another separate account. We encourage developers
-to :doc:`use identical setup <../environ/vm-setup>`. You can try make everything work for
+to `use identical setup <../environ/vm-setup.html>`_. You can try make everything work for
 your app when using just a single account, but it's not something we support
 centrally. To hide most of the details there are several helper functions and
 the install is divided into three parts: *prep*, *sw* and *post*.
@@ -62,7 +62,7 @@ What the script should and should not do
 The deployment action should do everything required to install or upgrade
 the service, bringing it fully to runnable state. The script should not stop
 or start the server, that will happen outside using the
-:doc:`management <ops-manage>` scripts during upgrades.
+`management <ops-manage.html>`_ scripts during upgrades.
 
 In general, deploying the server should install both the software and the
 specific configuration required for CMSWEB cluster systems: production,
@@ -286,7 +286,7 @@ The next stage is software installation: ::
 In production the ``deploy_myapp_sw`` runs under ``_sw`` account and leaves
 files owned by the ``_config`` group. This is to protect them so that the
 running server can read the files, but not modify them. You normally just
-run ``deploy_pkg`` function, which :ref:`is documented below <deploy_pkg>`.
+run ``deploy_pkg`` function, which `is documented below <deploy_pkg>`_.
 
 Here we install CMS RPM package *myapp* from *comp* repository into
 ``$root/current/sw`` base path. The version of the package is not normally
@@ -296,7 +296,7 @@ you tell the system to install "whatever is current for this release series."
 Assuming this version is ``x.y.z``, we also create symlink
 ``$root/current/apps/myapp`` which points to
 ``$root/current/sw/slc5_amd64_gcc434/cms/myapp/x.y.z``. Other files such as
-:doc:`management scripts <ops-manage>` and configuration files are copied
+`management scripts <ops-manage.html>`_ and configuration files are copied
 from the project configuration directory fetched from github
 ($project_config_src) into ``$root/current/config/myapp``
 ($project_config). Hence the files to be installed are determined by what
@@ -329,7 +329,7 @@ automatic server management. The ``mkcrontab`` is just a shortcut for
 current crontab minus anything which mentions ``$project_config``. To this
 you should add a cron ``@reboot`` stanza to start the server automatically
 on reboot, the ``sysboot`` automates this. This will invoke the
-:doc:`manage script <ops-manage>` with ``sysboot`` action, which is like
+`manage script <ops-manage.html>`_ with ``sysboot`` action, which is like
 ``start`` but protects against spurious restarts caused by ``crond``
 restarts outside system boot.
 
@@ -527,7 +527,7 @@ Testing your deployment action
 In general you should be able to test your deployment action as follows.
 Just edit the *Deploy* script locally and repeat as long as necessary. Use
 ``-r comp.pre`` or ``-r comp.$user`` to test with pre-release and private
-builds. See :doc:`../environ/vm-setup` for details on how to set up an
+builds. See `vm-setup <../environ/vm-setup.html>`_ for details on how to set up an
 environment for this. ::
 
     # Generally assumed working area, but can be anything.

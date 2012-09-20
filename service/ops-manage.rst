@@ -7,7 +7,7 @@ Overview
 This page describes how to maintain DM/WM software *manage* script.
 All the code resides in DM/WM github `deployment <https://github.com/dmwm/deployment>`_.
 For each service there is a sub-directory which contains the deployment script
-:doc:`deploy <ops-deploy>`, server management script :doc:`manage <ops-manage>`, and
+`deploy <ops-deploy.html>`_, server management script `manage <ops-manage.html>`_, and
 any configuration files except security-sensitive authnetication data.
 
 The scripts are designed to resemble linux /etc/init.d service management scripts.
@@ -16,10 +16,9 @@ The scripts are designed to resemble linux /etc/init.d service management script
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Please do not commit any changes directly. Please submit tested changes as per
-:doc:`../environ/dev-git`
-guidelines. All changes
-pertaining to the service -- :doc:`deploy scripts <ops-deploy>`, manage scripts,
-:doc:`monitoring specs <ops-monitor>` and server configuration files -- should
+`dev-git <../environ/dev-git.html>`_ guidelines. All changes
+pertaining to the service -- `deploy scripts <ops-deploy.html>`_, manage scripts,
+`monitoring specs <ops-monitor.html>`_ and server configuration files -- should
 be supplied in the patch series. We will review your changes, and may request
 changes. Once the changes are approved, we will commit them to github for you.
 You should assume progressive clean-up of your deployment action can happen
@@ -131,7 +130,7 @@ status. More complete requirements are listed below:
   this internally.
 
 * Server logs should be written to ``/data/logs/<name>``. The directory
-  should be created during :doc:`deployment <ops-deploy>`.
+  should be created during deployment. See `ops-deploy  <ops-deploy.html>`_.
 
 * Server logs should be automatically rotated daily. We prefer you pipe server
   output via ``rotatelogs`` to achieve this. Specifically we prefer all server
@@ -139,7 +138,7 @@ status. More complete requirements are listed below:
   using any internal log rotating schemes.
 
 * Avoid server version selection logic. Use the symlink created by
-  :ref:`deploy_pkg` at installation time to decide
+  `deploy_pkg` at installation time to decide
   which version of the server to act on. If we need to swap running server
   versions, we can just redirect the link.
 
@@ -152,7 +151,7 @@ Testing the management script
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Always test new scripts in your private test installation, preferably using a
-:doc:`developer virtual machine <../environ/vm-setup>` with realistic
+`developer virtual machine <../environ/vm-setup.html>`_ with realistic
 multi-account setup.
 Exercise all actions supported by your management script and make sure they
 perform the desired actions and nothing else. You can use

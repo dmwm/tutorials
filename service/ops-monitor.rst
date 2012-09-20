@@ -8,7 +8,7 @@ This page describes how to maintain DM/WM software monitoring
 specifications. All the code resides in DM/WM github
 `deployment <https://github.com/dmwm/deployment>`_. For each service there
 is a sub-directory which contains the deployment script
-:doc:`deploy <ops-deploy>`, server management script :doc:`manage <ops-manage>`,
+`deploy <ops-deploy.html>`_, server management script `manage <ops-manage.html>`_,
 monitoring specs and any configuration files except security-sensitive
 authnetication data.
 
@@ -16,10 +16,10 @@ authnetication data.
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Please do not commit any changes directly. Please submit tested
-changes as pull requests as per :doc:`../environ/dev-git` guidelines.
+changes as pull requests as per `dev-git <../environ/dev-git.html>`_ guidelines.
 All changes pertaining
-to the service -- :doc:`deploy scripts <ops-deploy>`,
-:doc:`manage scripts <ops-manage>`, monitoring specs and server configuration
+to the service -- `deploy scripts <ops-deploy.html>`_,
+`manage scripts <ops-manage.html>`_, monitoring specs and server configuration
 files -- should be supplied in the pull request. We will review your patch,
 and may request changes. Once they are approved, we will commit them to
 github for you. You should assume progressive clean-up of your deployment

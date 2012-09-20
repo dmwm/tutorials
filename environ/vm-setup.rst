@@ -17,7 +17,7 @@ CERN VMM virtual machine
    * Operating system: SLC5 - x86_64
    * Memory 2 GB (**not** less!), CPUs: 1
 
-|
+
 
 2. Request proxy renewal rights for your VM
 
@@ -68,11 +68,11 @@ CERN VMM virtual machine
 
 4. Log out
 
-   Log out. You may optionally reboot the server, but it isn’t necessary.
+   Log out. You may optionally reboot the server, but it isn't necessary.
 
    If you use SSH persistent connections, be sure to terminate the master
    connection before logging in again. The commands in *step 3* modify
-   users and groups, and it’s important they apply when you execute the
+   users and groups, and it's important they apply when you execute the
    next steps. This requires completely new log-in, and using persistent
    SSH connections may cause you to use cached credentials.
 
@@ -93,7 +93,7 @@ CERN VMM virtual machine
 
    If you develop a server with secrets, grab them now. You only need the
    secrets for the servers you manage, such as
-   ``/data/auth/t0datasvc/connect``. However you do not need this at all – you
+   ``/data/auth/t0datasvc/connect``. However you do not need this at all - you
    can just run *step 7*, which will then create dummy auth info, which
    you can then overwrite with real data, *in step 10*. If you *do* create
    the auth directory, it must be adequately protected and ``_sw`` group
@@ -172,7 +172,7 @@ CERN VMM virtual machine
    To clean up state, create VM snapshots and roll back to suitable point
    in time, scrap the VM and recreate it, or use the following commands to
    roll things back to where they were until *step 7*. **WARNING:** The rm
-   command will wipe out almost everything on /data – **MAKE SURE** you run
+   command will wipe out almost everything on /data - **MAKE SURE** you run
    it in right place, and want to run it! ::
 
     cd /data
@@ -181,12 +181,13 @@ CERN VMM virtual machine
     killall python
     sudo rm -fr [^aceu]* .??* current enabled
 
+
 11. Develop server
 
    Repeat steps *7* to *10* for any new software
    versions. You can use private RPM repository such as ``comp.pre.yourlogin``
-   to exercise builds which haven’t been synced back to comp.pre yet. See
-   :ref:`developing-against-rpms` for details on how to upload to private
+   to exercise builds which haven't been synced back to comp.pre yet. See
+   `Developing Against RPMS <../environ/rpm-dev.html>`_ for details on how to upload to private
    repositories.
 
 Local virtual machine
@@ -309,8 +310,8 @@ copy your shell environment::
   scp ~/.z{log{in,out},sh{env,rc}} your-vm-host:
   scp -rp ~/.globus your-vm-host:
 
-Your VM is ready for use. SSH into it and deploy servers normally as per
-`dev-vm instructions <https://cern.ch/cms-http-group/dev-vm.html>`_::
+Your VM is ready for use. SSH into it and deploy servers normally as
+per `dev-vm instructions <https://cern.ch/cms-http-group/dev-vm.html>`_::
 
   # one-time preparation
   mkdir -p /tmp/foo
@@ -345,6 +346,7 @@ Your VM is ready for use. SSH into it and deploy servers normally as per
   crontab -r
   killall python
   sudo rm -fr [^aceu]* .??* current enabled
+
 
 Environment on a Mac OS X system
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -386,3 +388,4 @@ with Snow Leopard::
   PKGS="$PKGS overview sitedb/legacy stagemanager t0datasvc t0mon reqmgr workqueue"
   $A/InstallDev -s image -v hg$VER -a $PWD/auth ${=REPO} -p "$PKGS"
   $A/InstallDev -s start
+
