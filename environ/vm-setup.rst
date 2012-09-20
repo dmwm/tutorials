@@ -59,7 +59,7 @@ CERN VMM virtual machine
 
        mkdir -p /tmp/foo
        cd /tmp/foo
-       git clone git://github.com/geneguvo/deployment.git cfg
+       git clone git://github.com/dmwm/deployment.git cfg
        sudo -l  # this is so the following won't prompt
        cfg/Deploy -t dummy -s post $PWD system/devvm
        # OPTIONAL: review what happened: less /tmp/foo/.deploy/*
@@ -84,7 +84,7 @@ CERN VMM virtual machine
 
     cd /data
     id # should print out large number local _foo groups now
-    git clone git://github.com/geneguvo/deployment.git cfg
+    git clone git://github.com/dmwm/deployment.git cfg
 
 
 6. Set up authentication
