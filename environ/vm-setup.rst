@@ -17,9 +17,29 @@ CERN VMM virtual machine
    * Operating system: SLC5 - x86_64
    * Memory 2 GB (**not** less!), CPUs: 1
 
+2. Basic system install
 
+   SSH to your VM and run the following commands to do basic system setup.
+   It requests a host certificate using your ``~/.globus/user{cert,key}.pem``,
+   so make sure those files are up to date. Running ``Deploy`` will ask for
+   the CMSSW CVS password and your user certificate password. If your
+   certificate was issued by an authority other than CERN CA, `associate
+   your CERN account to the certificate
+   <https://ca.cern.ch/ca/Certificates/MapCertificate.aspx>`_ before attempting
+   to run this step. While doing the association, do **NOT** delete Kerberosservice
+   if it exists. For the certificate generation to succeed you must also be the
+   owner or the responsible of the VM in VMM.::
 
-2. Request proxy renewal rights for your VM
+       sudo yum install git.x86_64
+       mkdir -p /tmp/foo
+       cd /tmp/foo
+       git clone git://github.com/dmwm/deployment.git cfg
+       sudo -l  # this is so the following won't prompt
+       cfg/Deploy -t dummy -s post $PWD system/devvm
+       # OPTIONAL: review what happened: less /tmp/foo/.deploy/*
+       rm -fr /tmp/foo
+
+3. Request proxy renewal rights for your VM
 
    *This step is optional.*
 
@@ -45,26 +65,6 @@ CERN VMM virtual machine
 
        Regards,
        Your Name
-
-3. Basic system install
-
-   SSH to your VM and run the following commands to do basic system setup.
-   It requests a host certificate using your ``~/.globus/user{cert,key}.pem``,
-   so make sure those files are up to date. Running ``Deploy`` will ask for 
-   the CMSSW CVS password and your user certificate password. If your 
-   certificate was issued by an authority other than CERN CA, `associate 
-   your CERN account to the certificate 
-   <https://ca.cern.ch/ca/Certificates/MapCertificate.aspx>`_ before attempting
-   to run this step.::
-
-       mkdir -p /tmp/foo
-       cd /tmp/foo
-       git clone git://github.com/dmwm/deployment.git cfg
-       sudo -l  # this is so the following won't prompt
-       cfg/Deploy -t dummy -s post $PWD system/devvm
-       # OPTIONAL: review what happened: less /tmp/foo/.deploy/*
-       rm -fr /tmp/foo
-
 
 4. Log out
 
@@ -95,7 +95,7 @@ CERN VMM virtual machine
    secrets for the servers you manage, such as
    ``/data/auth/t0datasvc/connect``. However you do not need this at all - you
    can just run *step 7*, which will then create dummy auth info, which
-   you can then overwrite with real data, *in step 10*. If you *do* create
+   you can then overwrite with real data. If you *do* create
    the auth directory, it must be adequately protected and ``_sw`` group
    readable, so do run all the chmod/chgrp commands shown below. ::
 
@@ -111,8 +111,12 @@ CERN VMM virtual machine
    Note that you normally create the info by hand, instead of copying from
    the cmsweb account as only the admins can do the latter. The important
    thing is you set up directory structure ``/data/auth`` with the secrets
-   info that you need, for only those services you plan to install. So you
-   obviously know what to put in there.
+   info that you need, for only those services you plan to install. Also
+   note that you need to create a blank ``/data/auth/wmcore`` directory
+   if you are deploying any wmcore based service or deploying the frontend.
+   This directory holds the key used by both frontends and backend services
+   to hmac verify the http headers. A blank directory there tells the deploy
+   to generate a new key.
 
 
 7. Software installation
@@ -125,7 +129,7 @@ CERN VMM virtual machine
    Note you will be asked for the privkey passphrase in case your service
    requires a proxy certificate to work.
 
-   If you did not do *step 6*, drop the ``-a $PWD/auth`` option. ::
+   If you did not do *step 6*, **drop the ``-a $PWD/auth`` option**. ::
 
     A=/data/cfg/admin REPO="-r comp=comp.pre" VER=1207a
     cd /data
@@ -149,10 +153,10 @@ CERN VMM virtual machine
 
    You will get mail notifications days before it expires, though.
    Upon reception of such messages, run the procedure below to renew the 
-   long term proxy. If your request in *step 2* has not been handled yet,
+   long term proxy. If your request in *step 3* has not been handled yet,
    you'll need to run it every 36 hours until the machine gets included
    into myproxy.cern.ch. You can also run it at any time even when
-   the proxy is not yet about to expire. :: 
+   the proxy is not yet about to expire. ::
 
     cd /data
     $PWD/cfg/admin/ProxySeed -t dev -d $PWD/1207a/auth/proxy
@@ -189,6 +193,7 @@ CERN VMM virtual machine
    to exercise builds which haven't been synced back to comp.pre yet. See
    `Developing Against RPMS <../environ/rpm-dev.html>`_ for details on how to upload to private
    repositories.
+
 
 Local virtual machine
 ^^^^^^^^^^^^^^^^^^^^^
