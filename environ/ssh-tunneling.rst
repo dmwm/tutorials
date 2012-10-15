@@ -1,4 +1,4 @@
 SSH tunneling
 -------------
 
-See `ssh-fu guide <https://github.com/lat/ssh-fu>`_.
+See `ssh-fu guide <https://github.com/dmwm/ssh-fu>`_.
