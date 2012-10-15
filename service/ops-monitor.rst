@@ -59,6 +59,10 @@ report monitoring results in the output feed.
 
 The file can have the following definitions:
 
+* ``ENABLE_IF`` restricts the monitoring on specified machines and/or
+  if another service is enabled. Ex.: ``ENABLE_IF='is_enabled("couchdb")'``
+  or ``ENABLE_IF='app_is_enabled and host == "vocms138"'``.
+
 * ``LOG_FILES`` defines a glob pattern for server log files, relative to
   ``$root/logs/myapp`` log directory. Normally this is just ``*.log``.
 
@@ -85,6 +89,29 @@ The file can have the following definitions:
   matches this regular expression. The response includes all HTTP response
   headers as well as the body. Be careful with the regexp if the response is
   binary data.
+
+* ``PROCESS_OWNER`` defines the owner of processes which activity
+  information will be shown.
+
+* ``PROCESS_REGEX_NAME`` optional python regular expression to match against
+  ``PROCESS_OWNER`` processes. If not specified, the server monitor will give
+  activity information for all the owner's processes found.
+
+* ``PROCESS_ACTIVITY`` defines a comma separated list of activities
+  to be shown for ``PROCESS_OWNER`` processes. The following names can be used
+  *cpu,mem,threads,user,system,rss,vms,connections,io,files*. If not
+  specified, it defaults to *cpu,mem,threads* only. The *connections*, *io*,
+  and *files* are not available in the cmsweb machines, therefore can only
+  be used in developement environments.
+
+* ``REPORT_FILES`` defines a glob pattern for server log files to get report
+  information from. Like ``LOG_FILES``, it is relative to ``$root/logs/myapp``
+  log directory.
+
+* ``REPORT_REGEX`` defines a perl regular expression to search in the
+  ``REPORT_FILES``. A report is used to monitor some service specific
+  information that eventually gets printed to a log file (i.e. DQM GUI
+  uses this feature to monitor the length of its queues).
 
 Example
 ^^^^^^^
@@ -123,3 +150,59 @@ lemon will eventually raise an alarm. A failed ``PING`` might look like this: ::
 An error scanned from server logs might look like this: ::
 
     Feb 28 12:10:07 sitedb ERROR file:<.../sitedb-20110228.log>:50149 line:<[snip] error: Traceback (most recent call last):>
+
+Process activity monitoring example
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Here we provide example of configration which can be used to monitor DAS web server,
+along with sample output and its explanation:
+
+::
+
+    # Monitor DAS web server process running under _das account
+    PROCESS_OWNER="_das"
+    PROCESS_REGEX_NAME="/DAS/web/das_server.*"
+    PROCESS_ACTIVITY="cpu,mem,threads,user,system,rss,vms"
+
+With this configuration you'll see the following output in the feed log file: ::
+
+    Jul 17 17:33:13 _das SYSTEM PID: 8635, NAME: das_server.py, STATUS: sleeping,
+        CPU: 0.0%, MEM: 1.7%, THR: 121, USER: 9615.04,
+        SYSTEM: 1558.9, RSS: 36139008, VMS: 1451147264
+
+This output consists of the following metrics:
+
+- PID of the process `8635`
+- process name `das_server.py`
+- process status `sleeping`
+- CPU usage `0.0%`
+- memory usage `1.7%`
+- number of allocated threads `121`
+- the amount of time in seconds process spent in user mode `9615.04`
+- the amount of time in seconds process spent in system mode `1558.9`
+- Resident Set Size (RSS) `36139008` in bytes
+- Virtual Memory Size (VMS) `1451147264` in bytes
+
+
+Reports monitoring example
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+    ENABLE_IF='app_is_enabled and host == "vocms138"'
+
+    LOG_FILES='offline/agent-*.log'
+    LOG_ERROR_REGEX='ERROR|WARNING'
+    LOG_ERROR_REGEX='Traceback \(most recent|.*cherrypy\.error.*|File ".*", line \d+, in'
+
+    REPORT_FILES='offline/agent-*.log'
+    REPORT_REGEX='\[(?P<AGENT>[A-Za-z0-9]+)/\d+\] found (?P<QUEUE>\d+) new files'
+
+    PS_REGEX='[/]dqmgui/[-a-z0-9.]+/bin/visDQM[A-Za-z0-9]+(Daemon|Stager|Verifier|QuotaControl) .*/state/dqmgui/offline/agents'
+
+The typical monitoring feed in ``$root/logs/admin/feed.lemon`` would then have lines like these: ::
+
+    Oct 15 11:56:10 dqm-offline-agents REPORT AGENT=visDQMRootFileQuotaControl QUEUE=15
+    Oct 15 11:56:40 dqm-offline-agents REPORT AGENT=visDQMVerControlDaemon QUEUE=2
+    Oct 15 11:57:10 dqm-offline-agents REPORT AGENT=visDQMImportDaemon QUEUE=8
+
