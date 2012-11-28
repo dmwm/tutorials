@@ -33,7 +33,7 @@ CERN VMM virtual machine
        sudo yum install git.x86_64
        mkdir -p /tmp/foo
        cd /tmp/foo
-       git clone git://github.com/dmwm/deployment.git cfg
+       (git clone git://github.com/dmwm/deployment.git cfg && cd cfg && git reset --hard HG1212c)
        sudo -l  # this is so the following won't prompt
        cfg/Deploy -t dummy -s post $PWD system/devvm
        # OPTIONAL: review what happened: less /tmp/foo/.deploy/*
@@ -53,19 +53,10 @@ CERN VMM virtual machine
       Certificate *Base 64 Encoded* and save the file in the same folder as
       newcsr.csr. Then run the following set of commands::
 
-          openssl pkcs12 -export -inkey privkey.pem -in newcert.cer -out myCertificate.pks
-          openssl pkcs12 -in myCertificate.pks -out hostcert.pem -nodes -clcerts -nokeys
-          openssl pkcs12 -in myCertificate.pks -out hostkey.pem -nodes -nocerts
-
-   3. Copy hostkey.pem and hostcert.pem into /etc/grid-security/ and change
-      permission of the files to the following::
-
-          cp hostkey.pem hostcert.pem /etc/grid-security
-          chmod 0400 /etc/grid-security/hostkey.pem
-          chmod 0600 /etc/grid-security/hostkey.pem
-
-   4. Remove newcert.csr, newcert.cer, myCerficate.pks generated at step
-      1 and 2 from your system.
+          mv newcert.cer /etc/grid-security/hostcert.pem
+          mv privkey.pem /etc/grid-security/hostkey.pem
+          chmod 400 /etc/grid-security/hostkey.pem
+          rm newcsr.csr 
 
 3. Request proxy renewal rights for your VM
 
@@ -112,7 +103,7 @@ CERN VMM virtual machine
 
     cd /data
     id # should print out large number local _foo groups now
-    git clone git://github.com/dmwm/deployment.git cfg
+    (git clone git://github.com/dmwm/deployment.git cfg && cd cfg && git reset --hard HG1212c)
 
 
 6. Set up authentication
@@ -151,8 +142,10 @@ CERN VMM virtual machine
 
    The following installs standard multi-account setup using the RPMs from
    the ``comp.pre`` repository, where its versions come from the ``cmsweb``
-   release ``HG1211b``. You may pick up any cmsweb tag you need. The list of
+   release ``HG1212c``. You may pick up any cmsweb tag you need. The list of
    cmsweb release tags can be found `here <https://github.com/dmwm/deployment/tags>`_.
+   Please also make sure you've used the same tag while cloning the
+   deployment repo in the step 5.
 
    You could overwrite specific service versions using
    *@theversion* following each service name. I.e. ``t0mon@4.2.11-comp4``.
@@ -162,7 +155,7 @@ CERN VMM virtual machine
 
    If you did not do *step 6*, **drop the ``-a $PWD/auth`` option**. ::
 
-    A=/data/cfg/admin REPO="-r comp=comp.pre" VER=HG1211b
+    A=/data/cfg/admin REPO="-r comp=comp.pre" VER=HG1212c
     cd /data
     $A/InstallDev -R cmsweb@$VER -s image -v $VER -a $PWD/auth $REPO -p "admin frontend t0datasvc t0mon"
     $A/InstallDev -s start
@@ -190,7 +183,7 @@ CERN VMM virtual machine
    the proxy is not yet about to expire. ::
 
     cd /data
-    $PWD/cfg/admin/ProxySeed -t dev -d $PWD/1207a/auth/proxy
+    $PWD/cfg/admin/ProxySeed -t dev -d $PWD/HG1212c/auth/proxy
 
 
 9. Manage servers
