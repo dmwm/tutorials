@@ -6,50 +6,48 @@ Developing against RPMs
 Install and start the server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Create a development environment as per `HTTP group instructions.
-<https://cern.ch/cms-http-group/dev-vm.html>`_ We will use SiteDB
-as an example server for this guide, so deploy it into your VM::
+Create a development environment as per `<vm-setup.html>`_
+instructions and deploy your service as usual. We will use SiteDB
+as an example server for this guide::
 
-    cd /data
-    A=/data/cfg/admin REPO= VER=1205f
-    $A/InstallDev -R cmsweb@$VER -s image -v hg$VER -a $PWD/auth \
-      ${REPO} -p "admin/devtools frontend sitedb/legacy"
-    $A/InstallDev -s start
+    (VER=HG1303b REPO="-r comp=comp.pre" A=/data/cfg/admin;
+     PKGS="admin/devtools frontend sitedb/legacy";
+     cd /data;
+     $A/InstallDev -R cmsweb@$VER -s image -v $VER -a $PWD/auth $REPO -p "$PKGS")
+
+    (A=/data/cfg/admin; cd /data; $A/InstallDev -s start)
+
+Note the commands run within braces "``( )``" to avoid changing your
+environment.
 
 Since SiteDB uses an Oracle database, this assumes you have somehow acquired
 the secrets information and have put them into ``$PWD/auth`` as described in
-the dev-vm instructions. For SiteDB specifically this means installing the
+the vm-setup instructions. For SiteDB specifically this means installing the
 right ``$PWD/auth/sitedb/SiteDBAuth.py``; other servers will require other
 kinds of secrets, some require none at all. You can point the authentication
 directory whereever you want, for example in a subdirectory under your AFS
 home directory ``~/private``, it does not have to be under ``/data``.
 
-For convenience we are using the ``InstallDev`` admin tool. This is really
-just a convenience shortcut for running ``Deploy``. The "real" documented
-and supported set of instructions is ``Deploy`` as documented in dev-vm
-guide, but you'll likely want to use ``InstallDev`` for convenience. It is
-a very simple wrapper shell script -- feel free to have a look inside.
+Above $VER is the base configuration you are developing against. Usually this
+should be the current pre-production release, which is always documented in the
+monthly "CMSDIST validation" ticket and announced in the webInterfaces forum.
 
 For this particular application, you'd normally deploy the ``legacy`` variant
 as shown above. Not all applications have variants, you need to know the
 application to know what should normally be deployed.
 
-As usual you can override the version to install or repository parameters
-with "``REPO='-r comp=comp.pre.me'``" or override the version to be installed
-by using ``sitedb@2.3.3-rc8/legacy`` to install 2.3.3-rc8 instead of whatever
-had been included in the release series $VER. We'll come to version overrides
-and private repositories further on.
+As usual you can choose a different RPM repository with
+"``REPO='-r comp=comp.pre.me'``", or override the version to be installed
+by using ``sitedb@2.4.1-rc1/legacy`` to install 2.4.1-rc1 instead of whatever
+had been included in the release series $VER. This feature will be used later
+in this development cycle to test your candidate RPMs.
 
-Above $VER is the base configuration you are developing against. Usually this
-should be the current production release, which is always documented in the
-monthly "CMSDIST requests" tickets. The above recipe also uses the version to
-name the local working area as ``hg1205f`` but you can use any name you like.
 
 Create development area
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 Once you have installed the server, create a development area as per `CMS
-DM/WM instructions. <https://cern.ch/cms-http-group/dev-git.html>`_
+DM/WM instructions. <dev-git.html>`_.
 Clone SiteDB from github; the following assumes you forked the repo and
 are going to use your own github account to access it::
 
@@ -62,6 +60,7 @@ are going to use your own github account to access it::
     git branch my-new-feature
     stg init
 
+
 Modify code and rebuild
 ^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -69,10 +68,10 @@ Modify the source code, creating your stg patch stack. For each patch you
 can rebuild the server and apply your changes to the server you installed
 earlier::
 
-    cd /data/user/sitedb
-    . /data/current/config/admin/init.sh
-    . /data/current/apps/sitedb/etc/profile.d/env.sh
-    dist-patch --skip-docs --compress
+    (cd /data/user/sitedb;
+     . /data/current/config/admin/init.sh;
+     . /data/current/apps/sitedb/etc/profile.d/env.sh;
+     wmc-dist-patch --skip-docs --compress)
 
 Here we speed up the build by skipping sphinx documentation generation, and
 generate a production-like server by compressing HTML, CSS and javascript
@@ -80,18 +79,11 @@ assets. Dropping the ``--compress`` option installs assets uncompressed and
 automatically puts the javascript side into a debug mode, which is useful
 for being able to debug the server.
 
-In another window where you do not source the environment, run the following
-to restart the server then observe logs to inspect impact of your changes.
-You'll want to do this in a separate window so the environments do not get
-mixed up::
+Run the following to restart the server, then observe logs to inspect impact
+of your changes::
 
-    cd /data
-    A=/data/cfg/admin REPO= VER=1205f
-    $A/InstallDev -s start:sitedb
+    (A=/data/cfg/admin; cd /data; $A/InstallDev -s start:sitedb)
     tail -f /data/logs/sitedb/*.log
-
-It is in fact convenient to run that last tail command separately in yet
-another window.
 
 You always have to restart the server if you've modified the python source
 code. If you are only modifying the HTML/CSS/JavaScript assets, you do not
@@ -112,6 +104,7 @@ removes them.
 install tree!** You only modify sources in your git checkout area, and let
 *setup.py* do the installation into the software area.
 
+
 Roll back your server
 ^^^^^^^^^^^^^^^^^^^^^
 
@@ -120,18 +113,22 @@ when installed from RPMs, un-patch and restart it. This is necessary at the
 very least before you re-deploy the server, as the deployment will otherwise
 complain about the extra files::
 
-    cd /data/user/sitedb
-    . /data/current/config/admin/init.sh
-    . /data/current/apps/sitedb/etc/profile.d/env.sh
-    dist-unpatch
+    (cd /data/user/sitedb;
+     . /data/current/config/admin/init.sh;
+     . /data/current/apps/sitedb/etc/profile.d/env.sh;
+     wmc-dist-unpatch)
+    (A=/data/cfg/admin; cd /data; $A/InstallDev -s start:sitedb)
 
-Note that if you are working on a server based on WMCore, the commands to
-patch are *wmcore-dist-patch* and *wmcore-dist-unpatch*. Options to the
-patch script end up getting passed to *setup.py*, so you'd normally use it
-something like "``wmcore-dist-patch -s mysystem --skip-docs --compress``".
 
 Building RPMs from your changes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Important: at no point in the process do you need to wait
+for someone else to complete development or testing.** There are other
+reasons you need to synchronise with other developers, but you *never*
+need to wait on others to complete development cycle all the way down to
+deploying RPMs with standard deployment recipes, and test your servers
+with whatever test suite you have.
 
 The steps above would normally cover 75% of your development work, merely
 patching the server from the previous cycle with your new changes. For this
@@ -161,13 +158,6 @@ git repo, and issue a pull request. You then either wait for patch review
 to complete, or change RPMs to build out of your repository on github,
 then submit a new deployment request to the standard CMSDIST ticket for
 the next pre-production deployment.
-
-**Most importantly of all, at no point in the process do you need to wait
-for someone else to complete development or testing.** There are other
-reasons you need to synchronise with other developers, but you *never*
-need to wait on others to complete development cycle all the way down to
-deploying RPMs with standard deployment recipes, and test your servers
-with whatever test suite you have.
 
 When you have the process sorted out, you should typically spend ~75% of
 all your development time purely in the patch cycle, without bothering
@@ -203,14 +193,13 @@ in our patches, as temporary stg commits at the head::
     > unused-schema  | Remove commented out schema which confuses automatic...
 
     # check history log and commit ids for builds
-    git log -5 --abbrev-commit --pretty=oneline --decorate
+    git log -4 --abbrev-commit --pretty=oneline --decorate
 
     # in my case the output looks like this (cf. stg series output)
     0e019b2 (HEAD, refs/patches/master/unused-schema, master) Remove commented out...
     6b0ad92 (refs/patches/master/drop-types) Schema types to be dropped are auto-...
     28a5ba3 (refs/patches/master/drop-index) Dropping tables automatically drops...
-    b3fb151 (tag: 2.3.2, origin/master, origin/HEAD, refs/bases/master) Clear DN...
-    cd2b582 (tag: 2.3.1) Automatically delete locked accounts in hypernews import.
+    b3fb151 (tag: 2.4.0, origin/master, origin/HEAD, refs/bases/master) Clear DN...
 
 Now push the tree to the build machine; remove the ``-n`` option when
 you are comfortable this will do the right thing::
@@ -218,25 +207,27 @@ you are comfortable this will do the right thing::
     ssh vocms106.cern.ch mkdir -p /build/$USER/sitedb
     rsync -nzcav --delete ./ vocms106.cern.ch:/build/$USER/sitedb/
 
-Now on the build server, here vocms106, check out the base CMSDIST according
-to $VER you used earlier, and PKGTOOLS as per the `DMWM builds page
-<https://twiki.cern.ch/twiki/bin/view/CMS/DMWMBuilds>`_::
+On a separate shell window, login to the build server, here vocms106,
+and check out CMSDIST and PKGTOOLS according to the $VER you are using.
+See the `DMWM builds page
+<https://twiki.cern.ch/twiki/bin/view/CMS/DMWMBuilds>`_ to find out
+which build server to connect to and the PKGTOOLS tag to use.::
 
     cd /build/$USER
-    cvs -Q co -r HG1205f CMSDIST
-    cvs -Q co -r V00-20-27 PKGTOOLS
+    cvs -Q co -r HG1303b CMSDIST
+    cvs -Q co -r V00-20-29 PKGTOOLS
     head -1 CMSDIST/sitedb.spec
-      # mine outputs: '### RPM cms sitedb 2.3.2'
+      # mine outputs: '### RPM cms sitedb 2.4.0'
 
 We now change the CMSDIST to build an updated RPM. First change the version
-tag on the first line; here we use version 2.3.3-rc1 since we're making a
-the first release candidate RPM which is a small bug fix to 2.3.2 release.
+tag on the first line; here we use version 2.4.1-rc1 since we're making a
+the first release candidate RPM which is a small bug fix to 2.4.0 release.
 We also change the ``Source`` line to pull the top-most stg patch from the
 git repository we replicated to the build system::
 
     $ vi CMSDIST/sitedb.spec
-      -> ### RPM cms sitedb 2.3.3-rc1
-      -> Source1: git:/build/lat/sitedb?obj=master/0e019b2&export=SiteDB&output=/sitedb.tar.gz
+      -> ### RPM cms sitedb 2.4.1-rc1
+      -> Source1: git:/build/lat/sitedb?obj=master/0e019b2&export=%n&output=/%n.tar.gz
 
 Note above the ``obj=master/0e019b2`` which references the commit from our
 local git tree's stg patch stack. This is still all work in progress not
@@ -253,15 +244,20 @@ Now let's build this against ``comp.pre`` RPM repository::
 
 If all goes well the output will be like this::
 
-    Package cms+sitedb+2.3.3-rc1 requested. [...]
-    [1336684664.68] Starting to build cms+sitedb+2.3.3-rc1, log can be found in ...
+    Package cms+sitedb+2.4.1-rc1 requested. [...]
+    [1336684664.68] Starting to build cms+sitedb+2.4.1-rc1, log can be found in ...
     No more packages to build. Waiting for all build threads to complete their job.
-    [1336684685.75] Processing cms+sitedb-webdoc+2.3.3-rc1.
-    [1336684685.75] Checking repository for previous built cms+sitedb-webdoc+2.3.3-rc1.
+    [1336684685.75] Processing cms+sitedb-webdoc+2.4.1-rc1.
+    [1336684685.75] Checking repository for previous built cms+sitedb-webdoc+2.4.1-rc1.
     No more packages to build. Waiting for all build threads to complete their job.
 
 Next we upload this RPM to ``comp.pre.me`` private repository, where the .me
 is your CERN AFS login account::
+
+    # The following two commands unlock your ssh key temporarily so that the
+    # upload process don't have to ask you the password several times
+    eval `ssh-agent -s`
+    ssh-add -t 3600 # renew it every our or increase the value here
 
     PKGTOOLS/cmsBuild -c CMSDIST --repository comp.pre \
       --arch slc5_amd64_gcc461 --builders=8 -j 5 --work-dir w \
@@ -269,7 +265,7 @@ is your CERN AFS login account::
 
 The output will be something like::
 
-    Package cms+sitedb+2.3.3-rc1 requested. [...]
+    Package cms+sitedb+2.4.1-rc1 requested. [...]
     No more packages to build. Waiting for all build threads to complete their job.
     No more packages to build. Waiting for all build threads to complete their job.
     Ready to upload.
@@ -277,18 +273,28 @@ The output will be something like::
     Uploading packages.
     Regenerating apt db.
 
-We can now use the private RPM repository for installation. Just go back to
-the beginning and use ``REPO="-r comp=comp.pre.$USER"`` assignment to use
-your private user repository; mine was ``comp.pre.lat``. That's it, iterate
-back to installing and starting your server, test it a bit, maybe update the
-patches and re-patch the server, then rebuild RPMs each time bumping the
-release candidate ``-rcN`` number.
+We can now use the private RPM repository and the uploaded RPM for installation.
+Just go back to the beginning of this tutorial and override the repository name
+with ``REPO="-r comp=comp.pre.$USER"`` and the service version with
+``sitedb@2.4.1-rc1/legacy``. That is::
+
+    (A=/data/cfg/admin; cd /data; $A/InstallDev -s stop; crontab -r; killall python)
+
+    (VER=HG1303b REPO="-r comp=comp.pre.lat" A=/data/cfg/admin;
+     PKGS="admin/devtools frontend sitedb@2.4.1-rc1/legacy";
+     cd /data;
+     $A/InstallDev -R cmsweb@$VER -s image -v $VER -a $PWD/auth $REPO -p "$PKGS")
+
+    (A=/data/cfg/admin; cd /data; $A/InstallDev -s start)
+
+You can now test it, maybe iterate back to `Modify code and rebuild`_ to
+update the patches and re-patch the server, then rebuild RPMs each time
+bumping the release candidate ``-rcN`` number.
 
 Obviously at the same time you may be developing accompanying patch stack
-of changes to the ``deployment`` tree. You'd manage them virtually identically
-to the patch process described above. Since you can override the package
-version to install from command line, there is rarely a need to modify the
-deployment scripts.
+of changes to the ``deployment`` tree. Just make sure you set $A to point
+to it, or alternatively rsync your changes to /data/cfg. Then redeploy
+with it in order to test them.
 
 Only at the very end of this cycle you need to commit your git repository,
 your CMSDIST changes, and deployment script changes, and submit requests to
@@ -296,7 +302,7 @@ pull those to official repos and apply tags as appropriate. This helps
 leave your change history clean with well-tested modifications, and you can
 almost certainly spin a fully functional version of your server at any point
 in the process. This in turns considerably reduces the risk in making the
-releases.
+buggy releases.
 
 A slightly more advanced version of this cycle is that you keep your git
 repository and CMSDIST on your own desktop/laptop system, where you can
@@ -306,12 +312,12 @@ without any need to use a dev-vm or a build server. That is actually what
 I personally do, using the dev-vm only towards the end of the development
 cycle.
 
+
 Submit your changes
 ^^^^^^^^^^^^^^^^^^^
 
 Once you are happy with your changes, follow the `DM/WM instructions
-<https://cern.ch/cms-http-group/dev-git.html>`_ to push your changes to a
-branch and send a pull request.
+<dev-git.html>`_ to push your changes to a branch and send a pull request.
 
 You are generally expected to structure the changes as a series of change
 sets where each change is an individual atomic modification which makes
