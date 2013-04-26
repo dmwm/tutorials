@@ -33,7 +33,7 @@ CERN VMM virtual machine
        sudo yum install git.x86_64
        mkdir -p /tmp/foo
        cd /tmp/foo
-       (git clone git://github.com/dmwm/deployment.git cfg && cd cfg && git reset --hard HG1303b)
+       (git clone git://github.com/dmwm/deployment.git cfg && cd cfg && git reset --hard HG1305a)
        sudo -l  # this is so the following won't prompt
        cfg/Deploy -t dummy -s post $PWD system/devvm
        # OPTIONAL: review what happened: less /tmp/foo/.deploy/*
@@ -106,7 +106,7 @@ CERN VMM virtual machine
 
     cd /data
     id # should print out large number local _foo groups now
-    (git clone git://github.com/dmwm/deployment.git cfg && cd cfg && git reset --hard HG1303b)
+    (git clone git://github.com/dmwm/deployment.git cfg && cd cfg && git reset --hard HG1305a)
 
 
 6. Set up authentication
@@ -145,7 +145,7 @@ CERN VMM virtual machine
 
    The following installs standard multi-account setup using the RPMs from
    the ``comp.pre`` repository, where its versions come from the ``cmsweb``
-   release ``HG1303b``. You may pick up any cmsweb tag you need. The list of
+   release ``HG1305a``. You may pick up any cmsweb tag you need. The list of
    cmsweb release tags can be found `here <https://github.com/dmwm/deployment/tags>`_.
    Please also make sure you've used the same tag while cloning the
    deployment repo in the step 5.
@@ -158,7 +158,7 @@ CERN VMM virtual machine
 
    If you did not do *step 6*, **drop the ``-a $PWD/auth`` option**. ::
 
-    A=/data/cfg/admin REPO="-r comp=comp.pre" VER=HG1303b
+    A=/data/cfg/admin REPO="-r comp=comp.pre" VER=HG1305a
     cd /data
     $A/InstallDev -R cmsweb@$VER -s image -v $VER -a $PWD/auth $REPO -p "admin frontend t0datasvc t0mon"
     $A/InstallDev -s start
@@ -186,7 +186,7 @@ CERN VMM virtual machine
    the proxy is not yet about to expire. ::
 
     cd /data
-    $PWD/cfg/admin/ProxySeed -t dev -d $PWD/HG1303b/auth/proxy
+    $PWD/cfg/admin/ProxySeed -t dev -d $PWD/HG1305a/auth/proxy
 
 
 9. Manage servers
