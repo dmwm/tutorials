@@ -6,10 +6,10 @@ DMWM development environment
    :titlesonly:
 
    vm-setup
+   dmwm-build
    rpm-dev
    dev-git
    doc-sphinx
    style-lint
    patch-review
-   dmwm-build
    ssh-tunneling

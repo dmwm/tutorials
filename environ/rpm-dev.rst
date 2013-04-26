@@ -139,7 +139,7 @@ rebuild RPMs if you modify the external dependencies of your server.
 
 The RPM builds typically get split into two distinct phases for efficiency.
 In the first phase one builds strictly private RPMs out of sources still
-under development. At this point neither CMSDIST changes nor application
+under development. At this point neither ``cmsdist`` changes nor application
 sources are uploaded to a public repository, and the RPMs are not shared
 with anyone. This allows near complete test of servers with standard RPMs,
 even before pursuing patch review completion. It's not at all uncommon to
@@ -156,7 +156,7 @@ RPMs every once in a while. After you're satisfied with the RPMs you've
 built, you do any final polish on the patches, push them to your public
 git repo, and issue a pull request. You then either wait for patch review
 to complete, or change RPMs to build out of your repository on github,
-then submit a new deployment request to the standard CMSDIST ticket for
+then submit a new deployment request to the standard ``cmsdist`` ticket for
 the next pre-production deployment.
 
 When you have the process sorted out, you should typically spend ~75% of
@@ -208,24 +208,24 @@ you are comfortable this will do the right thing::
     rsync -nzcav --delete ./ vocms106.cern.ch:/build/$USER/sitedb/
 
 On a separate shell window, login to the build server, here vocms106,
-and check out CMSDIST and PKGTOOLS according to the $VER you are using.
+and check out ``cmdist`` and ``pkgtools`` according to the $VER you are using.
 See the `DMWM builds page
 <https://twiki.cern.ch/twiki/bin/view/CMS/DMWMBuilds>`_ to find out
-which build server to connect to and the PKGTOOLS tag to use.::
+which build server to connect to and the ``pkgtools`` tag to use.::
 
     cd /build/$USER
-    cvs -Q co -r HG1303b CMSDIST
-    cvs -Q co -r V00-20-29 PKGTOOLS
-    head -1 CMSDIST/sitedb.spec
+    git clone -b V00-21-XX https://github.com/cms-sw/pkgtools.git
+    (git clone -b comp https://github.com/cms-sw/cmsdist.git && cd cmsdist && git reset --hard HG1303b)
+    head -1 cmsdist/sitedb.spec
       # mine outputs: '### RPM cms sitedb 2.4.0'
 
-We now change the CMSDIST to build an updated RPM. First change the version
+We now change the ``cmsdist`` to build an updated RPM. First change the version
 tag on the first line; here we use version 2.4.1-rc1 since we're making a
 the first release candidate RPM which is a small bug fix to 2.4.0 release.
 We also change the ``Source`` line to pull the top-most stg patch from the
 git repository we replicated to the build system::
 
-    $ vi CMSDIST/sitedb.spec
+    $ vi cmsdist/sitedb.spec
       -> ### RPM cms sitedb 2.4.1-rc1
       -> Source1: git:/build/lat/sitedb?obj=master/0e019b2&export=%n&output=/%n.tar.gz
 
@@ -238,9 +238,9 @@ can download it.
 
 Now let's build this against ``comp.pre`` RPM repository::
 
-    PKGTOOLS/cmsBuild -c CMSDIST --repository comp.pre \
-      --arch slc5_amd64_gcc461 --builders=8 -j 5 --work-dir w \
-      build sitedb
+    pkgtools/cmsBuild -c cmsdist --repository comp.pre \
+      -a slc5_amd64_gcc461 --builders 8 -j 5 --work-dir w \
+      build cmsweb
 
 If all goes well the output will be like this::
 
@@ -251,19 +251,17 @@ If all goes well the output will be like this::
     [1336684685.75] Checking repository for previous built cms+sitedb-webdoc+2.4.1-rc1.
     No more packages to build. Waiting for all build threads to complete their job.
 
-Next we upload this RPM to ``comp.pre.me`` private repository, where the .me
+Next we upload this RPM to ``comp.pre.me`` private repository, where the *.me*
 is your CERN AFS login account::
 
-    # The following two commands unlock your ssh key temporarily so that the
-    # upload process don't have to ask you the password several times
-    eval `ssh-agent -s`
-    ssh-add -t 3600 # renew it every our or increase the value here
+    pkgtools/cmsBuild -c cmsdist --repository comp.pre \
+      -a slc5_amd64_gcc461 --builders 8 -j 5 --work-dir w --upload-user=$USER \
+      upload cmsweb
 
-    PKGTOOLS/cmsBuild -c CMSDIST --repository comp.pre \
-      --arch slc5_amd64_gcc461 --builders=8 -j 5 --work-dir w \
-      upload sitedb
+Note that ``comp.pre.me`` is automatically implied from ``--repository comp.pre``.
+You should **not** tell it explicitly to the ``--repository`` argument.
 
-The output will be something like::
+If the upload succeeds, the output will be something like::
 
     Package cms+sitedb+2.4.1-rc1 requested. [...]
     No more packages to build. Waiting for all build threads to complete their job.
@@ -297,7 +295,7 @@ to it, or alternatively rsync your changes to /data/cfg. Then redeploy
 with it in order to test them.
 
 Only at the very end of this cycle you need to commit your git repository,
-your CMSDIST changes, and deployment script changes, and submit requests to
+your ``cmsdist`` changes, and deployment script changes, and submit requests to
 pull those to official repos and apply tags as appropriate. This helps
 leave your change history clean with well-tested modifications, and you can
 almost certainly spin a fully functional version of your server at any point
@@ -305,7 +303,7 @@ in the process. This in turns considerably reduces the risk in making the
 buggy releases.
 
 A slightly more advanced version of this cycle is that you keep your git
-repository and CMSDIST on your own desktop/laptop system, where you can
+repository and cmsdist on your own desktop/laptop system, where you can
 edit the sources with a local editor, then rsync the trees to the dev-vm
 and build servers. You can actually do almost everything on a laptop,
 without any need to use a dev-vm or a build server. That is actually what

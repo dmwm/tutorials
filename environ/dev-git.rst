@@ -1,23 +1,45 @@
 Working with git for CMS DMWM projects
 --------------------------------------
 
-Creating feature branches and making a pull request
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Within the distributed nature of GIT, every repository checkout is
+a full copy of the repository content and its history.
+We don't have any central server and all the development
+can be done offline.
 
-1. Create an account at github. From here on the instructions assume
-   your github account is called 'mygit'. Replace that string below
-   in all the instructions with your real github account name. Login
-   to your github account on the website. Set up your github SSH keys.
+On this serverless model, however, we must decide what's the authoritative
+(aka "official") copy of the repository from where people would clone from and to
+where they contribute back. For DMWM projects, the official repositories are hosted
+in the `'dmwm' account in github <https://github.com/dmwm>`_. For CMSSW projects,
+it is the `'cms-sw' account in github <https://github.com/cms-sw>`_. In some cases,
+copies of some of the repositories may be made every once in a while to the central
+`GIT service at CERN <https://git.cern.ch/web/>`_ as a protection against disasters.
 
-2. Locate the code repository you work on. This could for example be
-   'deployment' repository from 'dmwm' user, or 'WMCore' repository from
-   'geneguvo'. On github web site, fork the repository to your
-   own account. These instructions assume the 'deployment' repository
-   from 'dmwm' account.
+Besides hosting the official repositories copy, we also use github services
+to exchange/review the changes we want to contribute to the official repositories.
+This is done through github
+`pull requests <https://help.github.com/articles/using-pull-requests>`_.
+Some projects may also use github for issue tracking and the project
+documentation (wiki).
 
-3. Clone the repository to your local area, and set up 'upstream' git
-   remote for the original, and a tracking branch 'upstream' for the
-   upstream's master branch. ::
+In order to send a pull request, you must first have created your own
+github account and set the SSH keys you'll use when pushing your changes
+to it. In the instructions below, we call your github account 'mygit'.
+
+
+Doing changes and sending a pull request
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+1. Locate the code repository you want to contribute. In this example
+   we will use the
+   `'deployment' repository from 'dmwm' user <https://github.com/dmwm/deployment>`_.
+   Then fork the repository to your own account by clicking in the 'fork'
+   button on the top right corner of this project area in github. As
+   a result, you'll get a copy of the repository under your 'mygit' account
+   in github.
+
+2. Clone the repository from github/mygit the to your local development area,
+   and set up 'upstream' git remote for the original repo, and a tracking branch
+   'upstream' for the upstream's master branch. ::
 
        cd My/Dev/Area
        git clone git@github.com:mygit/deployment.git
@@ -27,19 +49,19 @@ Creating feature branches and making a pull request
        git fetch upstream
        git branch --track upmaster remotes/upstream/master
 
-4. To start a new development, first update the 'upmaster' branch to
+3. To start a new development, first update the 'upmaster' branch to
    current tip of the upstream repository. ::
 
        git checkout upmaster
        git pull
 
-5. Create a new feature branch for your development. We'll call this
-   'hg1206-reqmgr-update', obviously you should pick a name appropriate
+4. Create a new feature branch for your development. We'll call this
+   'hg1305-reqmgr-update', obviously you should pick a name appropriate
    for your changes. ::
 
-       git checkout -b hg1206-reqmgr-update
+       git checkout -b hg1305-reqmgr-update
 
-6. Modify the code and commit. If you like using 'stg', you can and
+5. Modify the code and commit. If you like using 'stg', you can and
    should use it here to manage your patch stack. In that case, at the
    beginning say 'stg init' to initialise your branch for stg, then at
    the end when you are ready to submit, do 'stg commit -a' to commit
@@ -49,7 +71,7 @@ Creating feature branches and making a pull request
        git add reqmgr/deploy
        git commit -m "Incredibly awesome changes."
 
-7. Merge with upstream, in case there were changes in the mean time.
+6. Merge with upstream, in case there were changes in the mean time.
    Resolve any conflicts which arise. Note that you go to the tracking
    branch to do the pull, and merge locally from that branch to your
    development branch. You should also keep your 'master' branch up to
@@ -63,13 +85,13 @@ Creating feature branches and making a pull request
        git checkout master
        git merge upmaster
 
-       git checkout hg1206-reqmgr-update
+       git checkout hg1305-reqmgr-update
        git merge upmaster
 
-8. Push the changes to your github account. The 'origin' is where you did
+7. Push the changes to your github account. The 'origin' is where you did
    the initial clone, i.e. the 'deployment' repository in *your* github
-   account. You should push both your 'master' (see above why) and all the
-   feature branches you worked on. This is your last change to review the
+   account 'mygit'. You should push both your 'master' (see above why) and all the
+   feature branches you worked on. This is your last chance to review the
    changes before publishing them. ::
 
        # review history
@@ -78,13 +100,18 @@ Creating feature branches and making a pull request
        # review with full details, including patches
        git log -p
 
-       git push origin master hg1206-reqmgr-update
+       git push origin master hg1305-reqmgr-update
 
-9. At github web site, select your account's 'deployment' repository, and
-   the 'hg1206-reqmgr-update' branch, and follow the pull request recipe
-   to create a pull request for 'dmwm'. ::
+8. At github web site, select your account's 'deployment' repository, and
+   the 'hg1305-reqmgr-update' branch, and follow the pull request recipe
+   to create a pull request for the 'deployment' project in 'dmwm'.
+   See `<http://help.github.com/send-pull-requests/>`_.
 
-   <http://help.github.com/send-pull-requests/>
+   The dmwm managers will then review your changes and merge them to the target
+   branch of dmwm/deployment (usually it is the 'master') you selected when
+   filling up the pull request.
+
+   Done! You got your changes contributed to the target project!
 
 
 Applying a pull request after a review
@@ -117,11 +144,11 @@ Applying a pull request after a review
    original author has not created single atomic commits per feature as
    they should have. See 'git merge --squash' documentation for details. ::
 
-       git merge joebloggs/hg1206-reqmgr-update
+       git merge joebloggs/hg1305-reqmgr-update
        git push origin master
 
 6. Note that other users go back into
-   `Creating feature branches and making a pull request`_, step 4 to pull
+   `Doing changes and sending a pull request`_, step 3 to pull
    the changes you have just committed. Also note that git has no single
    master, so in fact anyone can execute the steps in
    `Applying a pull request after a review`_
