@@ -58,13 +58,14 @@ you'd use the HEAD of one of the
 `pkgtools branches <https://github.com/cms-sw/pkgtools/branches>`_
 according to the following table:
 
-===================================== ========================
-**cmsdist**                           **pkgtools**
-------------------------------------- ------------------------
-HG1305* and newer, or the comp branch use the V00-21-XX branch   
-HG1205* to HG1304*                    use the V00-20-XX branch
-HG120[1234]* and older tags           not supported anymore
-===================================== ========================
+================================================= =========================
+**cmsdist**                                       **pkgtools**
+------------------------------------------------- -------------------------
+anything from the comp_gcc481 branch              use the V00-22-XX branch
+HG1305* and newer, or the HEAD of the comp branch use the V00-21-XX branch   
+HG1205* to HG1304*                                use the V00-20-XX branch
+HG120[1234]* and older tags                       not supported anymore
+================================================= =========================
 
 
 Build machines and the build environment
@@ -135,6 +136,19 @@ of RPMs, so we want to make sure the production-ready RPMs will be
 available more reliably. This separation also allows us to keep ``comp``
 on a clean state which makes it quicker to generate/upload urgent RPMs
 during a scheduled intervention.
+
+Currently, the comp repositories have RPMs for the following architectures:
+
+======================================= =========== ===============
+**ARCH**                                in **comp** in **comp.pre**
+--------------------------------------- ----------- ---------------
+slc5_amd64_gcc434 (deprecated)               X             X
+slc5_amd64_gcc461 (current production)       X             X
+slc6_amd64_gcc461 (testing)                  X             X
+slc6_amd64_gcc481 (upcoming production)                    X
+osx106_amd64_gcc461 (testing)                X             X
+osx108_amd64_gcc481 (testing)                              X
+======================================= =========== ===============
 
 Besides the official repositories, there are a bunch of other "private"
 repositories. Every developer gets its private snapshot of a target
@@ -228,13 +242,13 @@ and understood what is the target RPM repository (i.e. ``comp.pre``)
 to use, it is time for hands on!
 
 The following example commands build a new RPM for the ReqMgr project
-from `cmsdist` HG1305a with target repository ``comp.pre``. ::
+from `cmsdist` HG1310f with target repository ``comp.pre``. ::
 
   # prepare a build area
   mkdir -p /build/$USER
   cd /build/$USER
   git clone -b V00-21-XX https://github.com/cms-sw/pkgtools.git
-  (git clone https://github.com/cms-sw/cmsdist.git && cd cmsdist && git reset --hard HG1305a)
+  (git clone https://github.com/cms-sw/cmsdist.git && cd cmsdist && git reset --hard HG1310f)
 
   vi cmsdist/reqmgr.spec # do some changes to it (i.e. bump new version)
 
@@ -281,9 +295,14 @@ for it yet, you can use the following instructions: ::
 Releasing RPMs to ``comp.pre`` and ``comp``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+**ATTENTION**: since the migration of cmsdist from CVS to GIT, the
+build-agent is disabled, so your release requests will be handled
+manually by the COMP release managers on the best effort.
+
 Fork `cmsdist` in github, clone it from your private github account and
 push your spec changes there. Then send a pull request to merge them into
-the `comp branch of cmsdist <https://github.com/cms-sw/cmsdist/tree/comp>`_.
+the `comp branch of cmsdist <https://github.com/cms-sw/cmsdist/tree/comp>`_,
+or into the `comp_gcc481 branch <https://github.com/cms-sw/cmsdist/tree/comp_gcc481>`_.
 See `Creating feature branches and making a pull request <dev-git.html>`_
 for detailed instructions if you are not familiar with GIT.
 
@@ -291,7 +310,8 @@ On the subject of the pull request, you should specify:
 
 - the target repository: ``comp.pre`` or ``comp``;
 - the architecture as used in the cmsBuild commands: ``slc5_amd64_gcc461``,
-  ``slc6_amd64_gcc461``, ``osx106_amd64_gcc461`` or ``*`` to build in all architectures;
+  ``slc6_amd64_gcc461``, ``osx106_amd64_gcc461``, ``slc6_amd64_gcc481``,
+  ``osx108_amd64_gcc481`` or ``*`` to build in all architectures;
 - the package name: i.e. ``reqmgr``.
 
 For example: ``comp.pre slc5_amd64_gcc461 reqmgr``.
@@ -315,4 +335,3 @@ and for debugging in case of problems. Note we will cleanup
 automatically these tags if they are older than 3 months. However, we will
 not clean an old tag if it was used to upload the last package RPM. Like
 that we can ensure we can always rebuild the last RPM of a package.
-
