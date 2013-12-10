@@ -10,10 +10,10 @@ Create a development environment as per `<vm-setup.html>`_
 instructions and deploy your service as usual. We will use SiteDB
 as an example server for this guide::
 
-    (VER=HG1303b REPO="-r comp=comp.pre" A=/data/cfg/admin;
+    (VER=HG1401a REPO="-r comp=comp.pre" A=/data/cfg/admin;
      PKGS="admin/devtools frontend sitedb/legacy";
      cd /data;
-     $A/InstallDev -R cmsweb@$VER -s image -v $VER -a $PWD/auth $REPO -p "$PKGS")
+     $A/InstallDev -R comp@$VER -s image -v $VER -a $PWD/auth $REPO -p "$PKGS")
 
     (A=/data/cfg/admin; cd /data; $A/InstallDev -s start)
 
@@ -28,7 +28,7 @@ kinds of secrets, some require none at all. You can point the authentication
 directory whereever you want, for example in a subdirectory under your AFS
 home directory ``~/private``, it does not have to be under ``/data``.
 
-Above $VER is the base configuration you are developing against. Usually this
+Above ``$VER`` is the base configuration you are developing against. Usually this
 should be the current pre-production release, which is always documented in the
 monthly "CMSDIST validation" ticket and announced in the webInterfaces forum.
 
@@ -39,7 +39,7 @@ application to know what should normally be deployed.
 As usual you can choose a different RPM repository with
 "``REPO='-r comp=comp.pre.me'``", or override the version to be installed
 by using ``sitedb@2.4.1-rc1/legacy`` to install 2.4.1-rc1 instead of whatever
-had been included in the release series $VER. This feature will be used later
+had been included in the release series ``$VER``. This feature will be used later
 in this development cycle to test your candidate RPMs.
 
 
@@ -215,7 +215,7 @@ which build server to connect to and the ``pkgtools`` tag to use.::
 
     cd /build/$USER
     git clone -b V00-21-XX https://github.com/cms-sw/pkgtools.git
-    (git clone -b comp https://github.com/cms-sw/cmsdist.git && cd cmsdist && git reset --hard HG1303b)
+    (git clone -b comp https://github.com/cms-sw/cmsdist.git && cd cmsdist && git reset --hard HG1401a)
     head -1 cmsdist/sitedb.spec
       # mine outputs: '### RPM cms sitedb 2.4.0'
 
@@ -278,10 +278,10 @@ with ``REPO="-r comp=comp.pre.$USER"`` and the service version with
 
     (A=/data/cfg/admin; cd /data; $A/InstallDev -s stop; crontab -r; killall python)
 
-    (VER=HG1303b REPO="-r comp=comp.pre.lat" A=/data/cfg/admin;
+    (VER=HG1401a REPO="-r comp=comp.pre.lat" A=/data/cfg/admin;
      PKGS="admin/devtools frontend sitedb@2.4.1-rc1/legacy";
      cd /data;
-     $A/InstallDev -R cmsweb@$VER -s image -v $VER -a $PWD/auth $REPO -p "$PKGS")
+     $A/InstallDev -R comp@$VER -s image -v $VER -a $PWD/auth $REPO -p "$PKGS")
 
     (A=/data/cfg/admin; cd /data; $A/InstallDev -s start)
 

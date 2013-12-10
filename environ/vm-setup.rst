@@ -22,7 +22,7 @@ CERN VMM virtual machine
    SSH to your VM and run the following commands to do basic system setup.
    It requests a host certificate using your ``~/.globus/user{cert,key}.pem``,
    so make sure those files are up to date. Running ``Deploy`` will ask for
-   the CMSSW CVS password and your user certificate password. If your
+   your user certificate password. If your
    certificate was issued by an authority other than CERN CA, `associate
    your CERN account to the certificate
    <https://ca.cern.ch/ca/Certificates/MapCertificate.aspx>`_ before attempting
@@ -33,7 +33,7 @@ CERN VMM virtual machine
        sudo yum install git.x86_64
        mkdir -p /tmp/foo
        cd /tmp/foo
-       (git clone git://github.com/dmwm/deployment.git cfg && cd cfg && git reset --hard HG1305a)
+       (git clone git://github.com/dmwm/deployment.git cfg && cd cfg && git reset --hard HG1401a)
        sudo -l  # this is so the following won't prompt
        cfg/Deploy -t dummy -s post $PWD system/devvm
        # OPTIONAL: review what happened: less /tmp/foo/.deploy/*
@@ -93,20 +93,18 @@ CERN VMM virtual machine
    Log out. You may optionally reboot the server, but it isn't necessary.
 
    If you use SSH persistent connections, be sure to terminate the master
-   connection before logging in again. The commands in *step 3* modify
+   connection before logging in again. The commands in *step 2* modify
    users and groups, and it's important they apply when you execute the
    next steps. This requires completely new log-in, and using persistent
    SSH connections may cause you to use cached credentials.
 
 
-5. Get configuration
+5. Log in
 
-   SSH into your VM again. Run the following. *NOTE:* From now on the
-   commands assume you just stay logged in, usually with $PWD at ``/data``.::
+   SSH into your VM again. Run the following to double check you got
+   the multiple service accounts.::
 
-    cd /data
     id # should print out large number local _foo groups now
-    (git clone git://github.com/dmwm/deployment.git cfg && cd cfg && git reset --hard HG1305a)
 
 
 6. Set up authentication
@@ -115,7 +113,7 @@ CERN VMM virtual machine
 
    If you develop a server with secrets, grab them now. You only need the
    secrets for the servers you manage, such as
-   ``/data/auth/t0datasvc/connect``. However you do not need this at all - you
+   ``/data/auth/t0wmadatasvc/t0auth.py``. However you do not need this at all - you
    can just run *step 7*, which will then create dummy auth info, which
    you can then overwrite with real data. If you *do* create
    the auth directory, it must be adequately protected and ``_sw`` group
@@ -123,9 +121,9 @@ CERN VMM virtual machine
 
     mkdir -p /data/auth
     mkdir -p /data/auth/myservice
-    vi /data/auth/myservice/mysecret # e.g. /data/auth/t0datasvc/connect
+    vi /data/auth/myservice/mysecret # e.g. /data/auth/t0wmadatasvc/t0auth.py
     # or grab them all:
-    # rsync -avu cmsweb@lxplus.cern.ch:private/conf/ /data/auth/
+    # rsync -avu cmsweb@vocmsNNN.cern.ch:private/conf/ /data/auth/
     chgrp -R _sw /data/auth
     chmod ug=r,o-rwx $(find /data/auth -type f)
     chmod u=rwx,g=rx,o-rwx $(find /data/auth -type d)
@@ -143,30 +141,34 @@ CERN VMM virtual machine
 
 7. Software installation
 
-   The following installs standard multi-account setup using the RPMs from
-   the ``comp.pre`` repository, where its versions come from the ``cmsweb``
-   release ``HG1305a``. You may pick up any cmsweb tag you need. The list of
-   cmsweb release tags can be found `here <https://github.com/dmwm/deployment/tags>`_.
-   Please also make sure you've used the same tag while cloning the
-   deployment repo in the step 5.
+   The following installs standard multi-account setup using the
+   deployment/configuration from the ``HG1401a`` release, and the corresponding
+   RPMs from the ``comp.pre`` repository. You may pick up any release tag you need.
+   The list of comp release tags can be found `here <https://github.com/dmwm/deployment/tags>`_.
 
    You could overwrite specific service versions using
-   *@theversion* following each service name. I.e. ``t0mon@4.2.11-comp4``.
+   *@theversion* following each service name. I.e. ``das@2.3.1-comp2``.
 
    Note you will be asked for the privkey passphrase in case your service
    requires a proxy certificate to work.
 
    If you did not do *step 6*, **drop the ``-a $PWD/auth`` option**. ::
 
-    A=/data/cfg/admin REPO="-r comp=comp.pre" VER=HG1305a
-    cd /data
-    $A/InstallDev -R cmsweb@$VER -s image -v $VER -a $PWD/auth $REPO -p "admin frontend t0datasvc t0mon"
-    $A/InstallDev -s start
+    # Get the configuration
+    (cd /data; git clone git://github.com/dmwm/deployment.git cfg && cd cfg && git reset --hard HG1401a)
+
+    # Use "-R cmsweb@$VER" instead of "-R comp@$VER" below for HG13* or older tags
+    (VER=VER=HG1401a REPO="-r comp=comp.pre" A=/data/cfg/admin;
+     cd /data;
+     $A/InstallDev -R comp@$VER -s image -v $VER -a $PWD/auth $REPO -p "admin frontend das mongodb")
+
+    (A=/data/cfg/admin; cd /data; $A/InstallDev -s start)
 
    To install the full set of services use the ``-p`` argument with:
    ``admin frontend couchdb das dbs dqmgui filemover mongodb phedex overview 
-   sitedb/legacy stagemanager t0datasvc t0mon reqmgr workqueue crabserver 
-   crabcache reqmon``
+   sitedb/legacy stagemanager reqmgr workqueue reqmon alertscollector
+   crabserver crabcache dmwmmon asyncstageout t0wmadatasvc dbsmigration
+   t0_reqmon acdcserver reqmgr2 gitweb``
 
 
 8. Proxy renewal
@@ -186,7 +188,7 @@ CERN VMM virtual machine
    the proxy is not yet about to expire. ::
 
     cd /data
-    $PWD/cfg/admin/ProxySeed -t dev -d $PWD/HG1305a/auth/proxy
+    $PWD/cfg/admin/ProxySeed -t dev -d $PWD/HG1401a/auth/proxy
 
 
 9. Manage servers
@@ -206,18 +208,20 @@ CERN VMM virtual machine
    command will wipe out almost everything on /data - **MAKE SURE** you run
    it in right place, and want to run it! ::
 
-    cd /data
-    $PWD/cfg/admin/InstallDev -s stop
-    crontab -r
-    killall python
-    sudo rm -fr [^aceu]* .??* current enabled
+    ([ "$(hostname)" = "mydevvmname" ] || exit;
+     echo "Deleting...";
+     cd /data; 
+     $PWD/cfg/admin/InstallDev -s stop;
+     crontab -r;
+     killall python;
+     sudo rm -fr [^aceu]* .??* current enabled)
 
 
 11. Develop server
 
    Repeat steps *7* to *10* for any new software
    versions. You can use private RPM repository such as ``comp.pre.yourlogin``
-   to exercise builds which haven't been synced back to comp.pre yet. See
+   to exercise builds which haven't been synced back to ``comp.pre`` yet. See
    `Developing Against RPMS <../environ/rpm-dev.html>`_ for details on how to upload to private
    repositories.
 
