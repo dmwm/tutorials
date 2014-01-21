@@ -94,7 +94,7 @@ built and (pre)released from such machines. Their hostnames
 and location of the official build logs are: ::
 
    vocms106:/build/dmwmbld/logs/dmwmbld: for SLC5 builds
-   vocms178:/build/dmwmbld/logs/dmwmbld: for SLC6 builds
+   vocms22:/build/dmwmbld/logs/dmwmbld: for SLC6 builds
    macms07:/build1/dmwmbld/logs/dmwmbld: for OSX builds
 
 You can (should) request access to these machines too so you
