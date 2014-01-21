@@ -158,7 +158,7 @@ CERN VMM virtual machine
     (cd /data; git clone git://github.com/dmwm/deployment.git cfg && cd cfg && git reset --hard HG1401a)
 
     # Use "-R cmsweb@$VER" instead of "-R comp@$VER" below for HG13* or older tags
-    (VER=VER=HG1401a REPO="-r comp=comp.pre" A=/data/cfg/admin;
+    (VER=HG1401a REPO="-r comp=comp.pre" A=/data/cfg/admin;
      cd /data;
      $A/InstallDev -R comp@$VER -s image -v $VER -a $PWD/auth $REPO -p "admin frontend das mongodb")
 
