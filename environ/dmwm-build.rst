@@ -53,19 +53,19 @@ Once you know which `cmsdist` configuration to use,
 you need to find the corresponding `pkgtools` tag or branch. As with
 `cmsdist`, you should never use the master HEAD of `pkgtools` as from
 time to time changes may be introduced there which trigger a full rebuild
-and/or will not work with your particular `cmsdist` tag. In general,
-you'd use the HEAD of one of the
-`pkgtools branches <https://github.com/cms-sw/pkgtools/branches>`_
-according to the following table:
+and/or will not work with your particular `cmsdist` tag. You should refer to
+the following table to figure out which 
+`pkgtools branches <https://github.com/cms-sw/pkgtools/branches>`_ 
+and tag to use:
 
-================================================= =========================
-**cmsdist**                                       **pkgtools**
-------------------------------------------------- -------------------------
-anything from the comp_gcc481 branch              use the V00-22-XX branch
-HG1305* and newer, or the HEAD of the comp branch use the V00-21-XX branch   
-HG1205* to HG1304*                                use the V00-20-XX branch
+================================================= ========================= =========================
+**cmsdist**                                       **pkgtools**              **tag / commit** 
+------------------------------------------------- ------------------------- -------------------------
+anything from the comp_gcc481 branch              use the V00-22-XX branch  434bf060200793b0120e0027f
+HG1305* and newer, or the HEAD of the comp branch use the V00-21-XX branch  b174441c2295f1b30c5ff6494 
+HG1205* to HG1304*                                use the V00-20-XX branch  HEAD
 HG120[1234]* and older tags                       not supported anymore
-================================================= =========================
+================================================= ========================= =========================
 
 
 Build machines and the build environment
