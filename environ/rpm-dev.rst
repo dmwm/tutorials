@@ -10,7 +10,7 @@ Create a development environment as per `<vm-setup.html>`_
 instructions and deploy your service as usual. We will use SiteDB
 as an example server for this guide::
 
-    (VER=HG1401a REPO="-r comp=comp.pre" A=/data/cfg/admin;
+    (VER=HG1408a REPO="-r comp=comp.pre" A=/data/cfg/admin;
      PKGS="admin/devtools frontend sitedb/legacy";
      cd /data;
      $A/InstallDev -R comp@$VER -s image -v $VER -a $PWD/auth $REPO -p "$PKGS")
@@ -41,6 +41,14 @@ As usual you can choose a different RPM repository with
 by using ``sitedb@2.4.1-rc1/legacy`` to install 2.4.1-rc1 instead of whatever
 had been included in the release series ``$VER``. This feature will be used later
 in this development cycle to test your candidate RPMs.
+
+Finally, please note the above procedure shall detect the underlying
+architecture automatically, depending if you running on SLC5/SLC6 or OSX.
+It might be the case, however, that you testing a new architecture (i.e. due to
+a new gcc version). In these cases, or whenever the default architecture is
+not correct, you should use the ``-A <arch>`` option on the ``InstallDev``
+commands. For instance, you'd currently use ``-A slc6_amd64_gcc481`` for
+deploying on SLC6.
 
 
 Create development area
@@ -214,8 +222,8 @@ See the `DMWM builds page
 which build server to connect to and the ``pkgtools`` tag to use.::
 
     cd /build/$USER
-    git clone -b V00-21-XX https://github.com/cms-sw/pkgtools.git
-    (git clone -b comp https://github.com/cms-sw/cmsdist.git && cd cmsdist && git reset --hard HG1401a)
+    (git clone -b V00-21-XX https://github.com/cms-sw/pkgtools.git && cd pkgtools && git reset --hard b174441c2295f1b30c5ff6494)
+    git clone -b comp https://github.com/cms-sw/cmsdist.git
     head -1 cmsdist/sitedb.spec
       # mine outputs: '### RPM cms sitedb 2.4.0'
 
@@ -240,7 +248,7 @@ Now let's build this against ``comp.pre`` RPM repository::
 
     pkgtools/cmsBuild -c cmsdist --repository comp.pre \
       -a slc5_amd64_gcc461 --builders 8 -j 5 --work-dir w \
-      build cmsweb
+      build comp
 
 If all goes well the output will be like this::
 
@@ -256,7 +264,7 @@ is your CERN AFS login account::
 
     pkgtools/cmsBuild -c cmsdist --repository comp.pre \
       -a slc5_amd64_gcc461 --builders 8 -j 5 --work-dir w --upload-user=$USER \
-      upload cmsweb
+      upload comp
 
 Note that ``comp.pre.me`` is automatically implied from ``--repository comp.pre``.
 You should **not** tell it explicitly to the ``--repository`` argument.
@@ -278,7 +286,7 @@ with ``REPO="-r comp=comp.pre.$USER"`` and the service version with
 
     (A=/data/cfg/admin; cd /data; $A/InstallDev -s stop; crontab -r; killall python)
 
-    (VER=HG1401a REPO="-r comp=comp.pre.lat" A=/data/cfg/admin;
+    (VER=HG1408a REPO="-r comp=comp.pre.diego" A=/data/cfg/admin;
      PKGS="admin/devtools frontend sitedb@2.4.1-rc1/legacy";
      cd /data;
      $A/InstallDev -R comp@$VER -s image -v $VER -a $PWD/auth $REPO -p "$PKGS")

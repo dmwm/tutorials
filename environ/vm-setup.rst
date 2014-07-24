@@ -1,40 +1,61 @@
 Virtual machine setup
 ---------------------
 
-CERN VMM virtual machine
-^^^^^^^^^^^^^^^^^^^^^^^^
+CERN virtual machine
+^^^^^^^^^^^^^^^^^^^^
 
-1. Request a VM from VMM
+1. Request a VM from the CERN Openstack service 
 
-   Go to `vmm.cern.ch <https://vmm.cern.ch>`_, click "Request a Virtual Machine",
-   and fill in the fields as follows. Submit the request and wait for an e-mail
-   telling you the machine is ready. If you need to share the VM with other users,
-   create an e-group and set it as the owner, and all the accounts in that
-   e-group will be able to ssh and sudo on the VM.
+   Go to `openstack.cern.ch <https://openstack.cern.ch/>`_, request
+   subscription if not yet done, and then sign in.
 
-   * Owner and main user: you
-   * Name and description: (something pertinent)
-   * Operating system: SLC5 - x86_64
-   * Memory 2 GB (**not** less!), CPUs: 1
+   If you manage multiple projects, explicitly select "Current project: Personal <name>".
+
+   On "Access & Security", import a SSH key if not done yet. This can be
+   used to give you root access to the VM, regardless of the image
+   used to create it. For CERN server images, however, this is not needed
+   since you can login to your CERN account there and then use sudo.
+
+   Click on "Instances", then on "+ Lauch Instance". Fill up the form with:
+
+   * Zone availability: any
+   * Flavour: select ``m1.small``, which has 20GB of disk, 2GB of RAM and 1 CPU.
+     This is the very minimum needed for deploying COMP services.
+     You can opt for a larger flavor, including ``win*`` ones,
+     provided you don't exceed your overall quota.
+   * Boot source: boot from image
+   * Image name: SLC5 (or SLC6) CERN Server - x86_64
+
+   After submitting the request, wait for the machine to build. Give it a few
+   minutes more even after openstack has reported it as ready since the VM can
+   be still booting.
 
 2. Basic system install
 
-   SSH to your VM and run the following commands to do basic system setup.
-   It requests a host certificate using your ``~/.globus/user{cert,key}.pem``,
-   so make sure those files are up to date. Running ``Deploy`` will ask for
-   your user certificate password. If your
-   certificate was issued by an authority other than CERN CA, `associate
-   your CERN account to the certificate
-   <https://ca.cern.ch/ca/Certificates/MapCertificate.aspx>`_ before attempting
-   to run this step. While doing the association, do **NOT** delete Kerberosservice
-   if it exists. For the certificate generation to succeed you must also be the
-   owner or the responsible of the VM in VMM.::
+   SSH to your VM as yourself and run the following commands to do basic system
+   setup.
 
-       sudo yum install git.x86_64
+   It requests a host certificate using your ``~/.globus/user{cert,key}.pem``,
+   so make sure those files are up to date. While reading your private key,
+   it asks for your password. If your certificate was issued by an authority
+   other than CERN CA, `associate your CERN account to the certificate
+   <https://ca.cern.ch/ca/Certificates/MapCertificate.aspx>`_ before attempting
+   to run this step. 
+
+   The ``Deploy`` command  will also check if it is possible
+   to resize the current root partition on the fly, asking for your confirmation for
+   doing so or skip. This is recommended because the default SLC5/6 installations do not size
+   partitions to use the entire allocated disk. It is also useful if you later
+   resize the VM to a different flavor (i.e. with more disk space). Note, however,
+   the partition resizing procedure is not very reliable, so do **never**, ever,
+   run it on a production server VM, nor expect it to work for VM images other
+   than the SLC5/6 ones. ::
+
+       sudo yum -y install git.x86_64
        mkdir -p /tmp/foo
        cd /tmp/foo
-       (git clone git://github.com/dmwm/deployment.git cfg && cd cfg && git reset --hard HG1401a)
-       sudo -l  # this is so the following won't prompt
+       git clone git://github.com/dmwm/deployment.git cfg
+       sudo -l
        cfg/Deploy -t dummy -s post $PWD system/devvm
        # OPTIONAL: review what happened: less /tmp/foo/.deploy/*
        rm -fr /tmp/foo
@@ -44,7 +65,7 @@ CERN VMM virtual machine
 
    A. Generate private key/certificate with the following command::
 
-          openssl req -new -subj "/CN=`hostname -f`" -out newcsr.csr -nodes -sha1
+          openssl req -new -subj "/CN=`hostname -f`" -out newcsr.csr -nodes -sha512
 
    B. Send the request to CERN CA: go to *New Host Certificate* on
       https://ca.cern.ch web site and select host for which you request
@@ -90,7 +111,8 @@ CERN VMM virtual machine
 
 4. Log out
 
-   Log out. You may optionally reboot the server, but it isn't necessary.
+   Log out. It is also recommended to reboot the server, specially if you
+   have resized partitions on the fly, but it isn't really necessary.
 
    If you use SSH persistent connections, be sure to terminate the master
    connection before logging in again. The commands in *step 2* modify
@@ -114,12 +136,13 @@ CERN VMM virtual machine
    If you develop a server with secrets, grab them now. You only need the
    secrets for the servers you manage, such as
    ``/data/auth/t0wmadatasvc/t0auth.py``. However you do not need this at all - you
-   can just run *step 7*, which will then create dummy auth info, which
+   can just proceed to next step, which will then create dummy auth info that
    you can then overwrite with real data. If you *do* create
    the auth directory, it must be adequately protected and ``_sw`` group
    readable, so do run all the chmod/chgrp commands shown below. ::
 
     mkdir -p /data/auth
+    mkdir -p /data/auth/wmcore
     mkdir -p /data/auth/myservice
     vi /data/auth/myservice/mysecret # e.g. /data/auth/t0wmadatasvc/t0auth.py
     # or grab them all:
@@ -142,7 +165,7 @@ CERN VMM virtual machine
 7. Software installation
 
    The following installs standard multi-account setup using the
-   deployment/configuration from the ``HG1401a`` release, and the corresponding
+   deployment/configuration from the ``HG1408a`` release, and the corresponding
    RPMs from the ``comp.pre`` repository. You may pick up any release tag you need.
    The list of comp release tags can be found `here <https://github.com/dmwm/deployment/tags>`_.
 
@@ -155,10 +178,10 @@ CERN VMM virtual machine
    If you did not do *step 6*, **drop the ``-a $PWD/auth`` option**. ::
 
     # Get the configuration
-    (cd /data; git clone git://github.com/dmwm/deployment.git cfg && cd cfg && git reset --hard HG1401a)
+    (cd /data; git clone git://github.com/dmwm/deployment.git cfg && cd cfg && git reset --hard HG1408a)
 
     # Use "-R cmsweb@$VER" instead of "-R comp@$VER" below for HG13* or older tags
-    (VER=HG1401a REPO="-r comp=comp.pre" A=/data/cfg/admin;
+    (VER=HG1408a REPO="-r comp=comp.pre" A=/data/cfg/admin;
      cd /data;
      $A/InstallDev -R comp@$VER -s image -v $VER -a $PWD/auth $REPO -p "admin frontend das mongodb")
 
@@ -169,6 +192,17 @@ CERN VMM virtual machine
    sitedb/legacy stagemanager reqmgr workqueue reqmon alertscollector
    crabserver crabcache dmwmmon asyncstageout t0wmadatasvc dbsmigration
    t0_reqmon acdcserver reqmgr2 gitweb``
+
+   Note that as per ``HG1408a`` the default architecture for SLC6 is
+   ``slc6_amd64_gcc481``, while it is still ``slc5_amd64_gcc461`` for
+   SLC5 (the production architecture). When deploying older releases on
+   SLC6, however, you must explicitly
+   use the ``-A slc6_amd64_gcc481`` option to the above ``InstallDev``.
+   The default architectures may change in the future, or RPMs for them
+   may not yet be available depending on the repository you are using. Read
+   `CMS RPMs and repositories <dmwm-build.html#cms-rpms-and-repositories>`_
+   and, if in doubt, always specify the ``-A <arch>`` to select the proper
+   architecture.
 
 
 8. Proxy renewal
@@ -188,7 +222,7 @@ CERN VMM virtual machine
    the proxy is not yet about to expire. ::
 
     cd /data
-    $PWD/cfg/admin/ProxySeed -t dev -d $PWD/HG1401a/auth/proxy
+    $PWD/cfg/admin/ProxySeed -t dev -d $PWD/HG1408a/auth/proxy
 
 
 9. Manage servers
@@ -228,6 +262,9 @@ CERN VMM virtual machine
 
 Local virtual machine
 ^^^^^^^^^^^^^^^^^^^^^
+
+**These instructions may be outdated since we don't support them.
+Please contribute back your corrections, in case of any.**
 
 These instructions create `Scientific Linux <http://scientificlinux.org>`_
 5.7 virtual machine under VirtualBox 4.1.x. You can another hypervisor if
@@ -386,6 +423,9 @@ per `dev-vm instructions <https://cern.ch/cms-http-group/dev-vm.html>`_::
 
 Environment on a Mac OS X system
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**These instructions may be outdated since we don't support them.
+Please contribute back your corrections, in case of any.**
 
 This is really not a virtual machine environment, but there is experimental
 support for settings this up on an OS X laptop. This has only been tested
