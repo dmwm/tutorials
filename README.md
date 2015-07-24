@@ -21,9 +21,11 @@ only to allow people to search from the main CERN twiki system.
 
 Typically, the official deployment is:
 
-    (git clone git://github.com/dmwm/tutorials.git
-     source /build/diego/cmsweb/w/slc5_amd64_gcc461/cms/overview/*/etc/profile.d/init.sh
-     cd tutorials
-     make html
-     make twiki
+    (set -e;
+     git clone git://github.com/dmwm/tutorials.git;
+     cd tutorials/;
+     source /build/dmwmbld/srv/state/dmwmbld/builds/comp_gcc481/w/slc6_amd64_gcc481/cms/wmcore-devtools/1.2-comp4/etc/profile.d/init.sh;
+     make html;
+     make twiki;
+     kinit cmsweb;
      rsync -rvu ./.build/html/ ./.build/twiki /afs/cern.ch/user/c/cmsweb/www/tutorials/)

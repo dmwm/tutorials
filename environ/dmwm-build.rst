@@ -1,6 +1,9 @@
 Software packaging and distribution in CMS
 ------------------------------------------
 
+**This tutorial was reviewed on 2015-07-23. If you find problems or
+need help, send to `hn-cms-webInterfaces`.** 
+
 CMS uses its own build facility to pack its software into RPMs and to
 distribute them. It is used by both the Offline group to distribute CMSSW
 and its related tools (i.e. the Tag Collector), and the Computing group to
@@ -17,9 +20,9 @@ and the configuration set used as input for it to generate RPMs is called
 packages (both CMS and non-CMS) in the form of rpm spec files, as well
 as patches and some files for the build infrastructure. Take a look into
 its files. There you can find the spec files to build
-`SiteDB <https://github.com/cms-sw/cmsdist/blob/master/sitedb.spec>`_
+`SiteDB <https://github.com/cms-sw/cmsdist/blob/comp_gcc481/sitedb.spec>`_
 but also non-CMS software like
-`cherrypy <https://github.com/cms-sw/cmsdist/blob/master/cherrypy.spec>`_.
+`cherrypy <https://github.com/cms-sw/cmsdist/blob/comp_gcc481/cherrypy.spec>`_.
 
 The tag or branch of `cmsdist` you use represents the set of packages
 you will use as a configuration, including the compiler, etc. You **should
@@ -40,15 +43,15 @@ be the latest.
 
 There are two main `cmsdist` branches used for the COMP (non CMSSW) projects
 that you need to be aware of:
-`the comp <https://github.com/cms-sw/cmsdist/tree/comp>`_ and the `comp_gcc481
-<https://github.com/cms-sw/cmsdist/tree/comp>`_. The former is currently
-used for SLC5 builds, while the later for SLC6/OSX.
+the `comp_gcc481 <https://github.com/cms-sw/cmsdist/tree/comp_gcc481>`_
+and the `comp_gcc493 <https://github.com/cms-sw/cmsdist/tree/comp_gcc493>`_.
+The former is the current production used configuration, while the later
+is a candidate for next production which is based on gcc493 and python2.7.
 
 In general, when targeting the next production ``HGYYMM*`` release, you must
-stick using the (HEAD of) `comp` branch, which is the current configuration used for
-building RPMs used in production servers. However, if you need to provide a critical
-fix to some older release, you start from the corresponding ``HGYYMM*`` tag. Finally,
-when targeting any SLC6/OSX build, use the (HEAD of) `comp_gcc481`.
+stick using the (HEAD of) `comp_gcc481` branch. However, if you need to
+provide a critical fix to some older release, you start from the corresponding
+``HGYYMM*`` tag.
 
 Once you know which `cmsdist` configuration to use,
 you need to find the corresponding `pkgtools` tag or branch. As with
@@ -58,14 +61,14 @@ and/or will not work with your particular `cmsdist` tag. You should refer to
 the following table to figure out which 
 `pkgtools` commit/tag to use:
 
-================================================= ====================================================================
-**cmsdist**                                       **pkgtools**              
-------------------------------------------------- --------------------------------------------------------------------
-anything from the comp_gcc481 branch              on the V00-22-XX branch, stick with commit 434bf060200793b0120e0027f
-HG1305* and newer, or the HEAD of the comp branch on the V00-21-XX branch, stick with commit b174441c2295f1b30c5ff6494 
-HG1205* to HG1304*                                use HEAD of the V00-20-XX branch
-HG120[1234]* and older tags                       not supported anymore
-================================================= ====================================================================
+===================================================== ====================================================================
+**cmsdist**                                           **pkgtools**              
+----------------------------------------------------- --------------------------------------------------------------------
+anything from the comp_gcc481 or comp_gcc493 branches on the V00-22-XX branch, stick with commit 434bf060200793b0120e0027f
+HG1305* and newer, or the HEAD of the comp branch     on the V00-21-XX branch, stick with commit b174441c2295f1b30c5ff6494 
+HG1205* to HG1304*                                    use HEAD of the V00-20-XX branch
+HG120[1234]* and older tags                           not supported anymore
+===================================================== ====================================================================
 
 
 Build machines and the build environment
@@ -74,7 +77,7 @@ Build machines and the build environment
 The building process with `pkgtools` requires a few system packages
 to be installed. Although we could build them all, sometimes it
 is not worth the effort to maintain them. This is the case, for
-instance, of perl. So if you ever need to build a perl dependent
+instance, of ``perl``. So if you ever need to build a perl dependent
 package, you must have it system wide installed.
 
 On another point of view, when we specify that a package has a
@@ -93,14 +96,13 @@ we setup a few *build machines*. All the official COMP RPMs are
 built and (pre)released from such machines. Their hostnames
 and location of the official build logs are: ::
 
-   vocms106:/build/dmwmbld/logs/dmwmbld: for SLC5 builds
-   vocms22:/build/dmwmbld/logs/dmwmbld: for SLC6 builds
+   vocms022:/build/dmwmbld/logs/dmwmbld: for SLC6 builds
    macms07:/build1/dmwmbld/logs/dmwmbld: for OSX builds
 
-You should request access to these machines too so you
+You should request access to the above machines too so you
 can test the building of your RPMs with a correct environment
 before asking them to be (pre)released. To get access to
-SLC5 and SLC6 build machines you should write to the
+SLC6 build machine you should write to the
 `webInterfaces <https://hypernews.cern.ch/HyperNews/CMS/get/webInterfaces.html>`_
 forum asking to be included in the `cms-comp-devs` e-group. For the OSX build
 machine, you should ask in the
@@ -120,7 +122,7 @@ CMS RPMs and repositories
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The `cms repository <http://cmsrep.cern.ch/>`_ stores and serves
-all the RPMs we build with `pkgtools`. There are three main (official)
+all the RPMs we build and release with `pkgtools`. There are three main (official)
 repositories hosted there: `cmssw <http://cmsrep.cern.ch/cmssw/cms/>`_,
 `comp <http://cmsrep.cern.ch/cmssw/comp/>`_ and
 `comp.pre <http://cmsrep.cern.ch/cmssw/comp.pre/>`_. We don't store
@@ -143,10 +145,11 @@ Currently, the comp repositories have RPMs for the following architectures:
 ======================================= =========== ===============
 **ARCH**                                in **comp** in **comp.pre**
 --------------------------------------- ----------- ---------------
-slc5_amd64_gcc434 (deprecated)               X             X
-slc5_amd64_gcc461 (current production)       X             X
+slc6_amd64_gcc493 (upcoming production)      X
+slc6_amd64_gcc481 (current production)                     X
 slc6_amd64_gcc461 (deprecated)               X             X
-slc6_amd64_gcc481 (upcoming production)                    X
+slc5_amd64_gcc461 (previous production)      X             X
+slc5_amd64_gcc434 (deprecated)               X             X
 osx106_amd64_gcc461 (deprecated)             X             X
 osx108_amd64_gcc481 (testing)                              X
 ======================================= =========== ===============
@@ -157,6 +160,8 @@ repository automatically when they upload RPMs. If you build against
 ``comp.pre``, your private repository will be called ``comp.pre.you``, 
 where ``you`` is your cern username. See for instance
 `comp.pre.diego <http://cmsrep.cern.ch/cmssw/comp.pre.diego/>`_.
+Similarly, if you build against ``comp``, your private repository
+will be called ``comp.you``.
 
 Please note that none of these RPM repositories are compatible
 with yum repositories. **CMS RPMs are not yum RPMs!**. They don't
@@ -205,41 +210,37 @@ on a yum RPM. They are incompatible for various reasons:
 The CMS RPM release policy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Only the COMP release managers can upload new RPMs to the ``comp``
-repository. These RPMs there are generated essentially
-from the same configuration used for releasing to ``comp.pre``, after
-they've been fully validated in a testbed environment. 
+Only the COMP release managers can manually upload new RPMs to the
+``comp`` and ``comp.pre`` repositories.
 
-The RPMs in ``comp.pre`` are released automatically whenever changes are
-committed to the branches `cmsdist/comp` (for SLC5 RPMs) and
-`cmsdist/comp_gcc481` (for SLC6/OSX). Only
-COMP release managers, however, are allowed to approve changes to these
-two branches in `cmsdist`. DMWM developers would normally request their
-changes to be merged there through a pull request in github. These requests
-are guaranteed to be taken by the COMP release managers during
-working hours.
+However, the RPMs for the ``slc6_amd64_gcc481`` and ``slc6_amd64_gcc493``
+architecture are released automatically whenever changes are
+committed to the branches `cmsdist/comp_gcc481` and
+`cmsdist/comp_gcc493`. The COMP release managers review/test pull
+requests made against those branches and would push them
+upstream whenever approved. DMWM developers should therefore
+send their material through pull requests there. See
+`Requesting to release COMP RPMs`_ for instructions.
+
+The requests would be taken during the ~monthly release cycles, but
+major changes and requests for commissioning new services or packages
+may take longer and their timelines are often discussed on the 
+`DMWMReleasePlanning <https://twiki.cern.ch/twiki/bin/viewauth/CMS/DMWMReleasePlanning>`_
+meetings.
 
 If you come into a situation where none of the
 release managers are responding to an urgent request, you
 could deploy the RPMs directly from your private RPM repository. That is,
-the RPMs you got uploaded to `comp.pre.you`. Provided you used the build
+the RPMs you got uploaded to ``comp.pre.you`` or ``comp.you``. Provided
+you used the build
 machines when building them, they shall work exactly the same as RPMs
 from ``comp`` or ``comp.pre``. Alternatively, you could ask anybody
 with push rights to `cmsdist` to push your changes, then use the
-RPMs that eventually get uploaded ``comp.pre`` by the build-agent.
+RPMs that eventually get uploaded by the build-agent.
 
-Since you have full control of your private, ``comp.pre.you`` RPM repository,
-you can upload RPMs to it at any time, **without holding on anybody nor
-on a robot like the build-agent**. Note, however, you must upload all your new RPMs
-at once because ``comp.pre.you`` will be reset automatically to the latest
-``comp.pre`` snapshot just before the RPM gets uploaded. In particular,
-you can't upload pkg X and then pkg Y. You should instead put X and Y
-on the same upload command request. On some cases, you may find more
-convenient to create a dummy package Z that does nothing but only depends
-on both X and Y, then always build/upload Z instead. You can upload
-RPMs to ``comp.pre.you`` from anywhere. However, you must subscribe to the
-`cms-comp-devs` e-group in order to have read access to ``comp.pre`` and
-write access to ``comp.pre.you`` in cmsrep.cern.ch.
+Since you have full control of your private, ``comp.pre.you`` and ``comp.you`` 
+RPM repositories, you can upload RPMs to it at any time,
+**without holding on anybody nor on a robot like the build-agent**.
 
 
 Building RPMs and releasing to a private repository
@@ -251,32 +252,35 @@ build environment (see `Build machines and the build environment`_)
 and understood what is the target RPM repository (i.e. ``comp.pre``)
 to use, it is time for hands on!
 
-The following example commands build a new SLC5 RPM for the wmagent
-project. It uses the HEAD of the `cmsdist/comp` branch for the configuration
-, and the build targets the ``comp.pre`` repository. On the SLC5 build machine: ::
+The following example commands build a new SLC6 RPM for the wmagent
+project. It uses the HEAD of the `cmsdist/comp_gcc481` branch for the
+configuration, and the build targets the ``comp.pre`` repository.
+On the SLC6 build machine: ::
 
   # prepare a build area
   mkdir -p /build/$USER
   cd /build/$USER
-  (git clone -b V00-21-XX https://github.com/cms-sw/pkgtools.git && cd pkgtools && git reset --hard b174441c2295f1b30c5ff6494)
-  (git clone https://github.com/cms-sw/cmsdist.git && cd cmsdist && git checkout comp)
+  (git clone -b V00-22-XX https://github.com/cms-sw/pkgtools.git && cd pkgtools && git reset --hard 434bf060200793b0120e0027f)
+  (git clone https://github.com/cms-sw/cmsdist.git && cd cmsdist && git checkout comp_gcc481)
 
   vi cmsdist/wmagent.spec # do some changes to it (i.e. bump new version)
 
   pkgtools/cmsBuild -c cmsdist --repository comp.pre \
-    -a slc5_amd64_gcc461 --builders 8 -j 5 --work-dir w \
+    -a slc6_amd64_gcc481 --builders 8 -j 5 --work-dir w \
     build wmagent-dev
 
   pkgtools/cmsBuild -c cmsdist --repository comp.pre \
-    -a slc5_amd64_gcc461 --builders 8 -j 5 --work-dir w \
-    --upload-user=$USER upload wmagent-dev
+    -a slc6_amd64_gcc481 --builders 8 -j 5 --work-dir w \
+    upload wmagent-dev --upload-user=$USER
 
 These commands will result in uploading the new RPMs to
 ``comp.pre.you``, **not** to ``comp.pre``! The ``--repository comp.pre``
 option basically tell it to "mirror repository from comp.pre to
-comp.pre.you, then upload any new produced RPMs to comp.pre.you".
+comp.pre.you, then upload any new produced RPMs to comp.pre.you". In
+order to be able to upload anything, please first subscribe to the
+`cms-comp-devs` e-group.
 
-Note that, athought only the wmagent package (the ``wmagent.spec`` file)
+Note that, athough only the wmagent package (the ``wmagent.spec`` file)
 was changed, we requested building/uploading everything deriving from
 the ``wmagent-dev`` package. This later is a meta-package, that is, package
 that does not contain any code, but only depends on other packages,
@@ -286,7 +290,8 @@ it needs other external services or tools deployed together (i.e. rotatelogs).
 The meta-package not only makes building/uploading changes for all them
 together into a single process, but can also be later used when deploying
 the service to automatically determine the RPM versions of all the
-services/tools you need.
+services/tools you need. Besides, you must upload all your new RPMs
+in a single upload command.
 
 The most common meta-package is the ``comp`` (see the ``comp.spec`` file).
 You can make changes on any spec file and use it to build/upload anything
@@ -294,27 +299,29 @@ that changed or depends on something that changed. It won't rebuild anything
 that has not changed (i.e. if you changed only ``sitedb``, it won't rebuild
 ``dbs``).
 
-On a second example, we show how to build SLC6 RPMs for the whole COMP software
+On a second example, we show how to build RPMs for the upcoming
+production architecure based on gcc493 for the whole COMP software
 stack (all the COMP projects). From the SLC6 build machine, do ::
 
   # prepare a build area
   mkdir -p /build/$USER
   cd /build/$USER
   (git clone -b V00-22-XX https://github.com/cms-sw/pkgtools.git && cd pkgtools && git reset --hard 434bf060200793b0120e0027f)
-  (git clone https://github.com/cms-sw/cmsdist.git && cd cmsdist && git checkout comp_gcc481)
+  (git clone https://github.com/cms-sw/cmsdist.git && cd cmsdist && git checkout comp_gcc493)
 
   vi cmsdist/sitedb.spec # do some changes to it (i.e. bump new version)
 
-  pkgtools/cmsBuild -c cmsdist --repository comp.pre \
-    -a slc6_amd64_gcc481 --builders 8 -j 5 --work-dir w \
+  pkgtools/cmsBuild -c cmsdist --repository comp \
+    -a slc6_amd64_gcc493 --builders 8 -j 5 --work-dir w \
     build comp
 
-  pkgtools/cmsBuild -c cmsdist --repository comp.pre \
-    -a slc6_amd64_gcc481 --builders 8 -j 5 --work-dir w \
-    --upload-user=$USER upload comp
+  pkgtools/cmsBuild -c cmsdist --repository comp \
+    -a slc6_amd64_gcc493 --builders 8 -j 5 --work-dir w \
+    upload comp --upload-user=$USER
 
-Note that the `cmsdist` and the `pkgtools` branches are different here. Besides,
-we've selected the ``slc6_amd64_gcc481`` architecture.
+Differently from the previous example, the `cmsdist` branch here
+is ``comp_gcc493``, the architecture is ``slc6_amd64_gcc493``, and the
+repository is ``comp``.
 
 
 Installing CMS RPMs
@@ -327,13 +334,12 @@ bare minimum system packages. Depending on the project you are installing,
 you may also need to setup system accounts, install grid CA certificates, etc.
 See the
 `system deploy <https://github.com/dmwm/deployment/blob/master/system/deploy>`_.
-On CERN VOBoxes, this system pre-configuration is usually done in quattor templates
-or on puppet manifests.
+On CERN VOBoxes, this system pre-configuration is usually done in puppet.
 
 If you want to install a raw RPM because you don't have a deployment script
 for it yet, you can use the following instructions: ::
 
-   export SCRAM_ARCH=slc5_amd64_gcc461  # or slc6_amd64_gcc481 if on SLC6
+   export SCRAM_ARCH=slc6_amd64_gcc481  # or slc6_amd64_gcc493
    REPO=comp.pre # Or comp.pre.you if you are installing from your private repo
    mkdir cms-comp; cd cms-comp
    wget http://cmsrep.cern.ch/cmssw/$REPO/bootstrap.sh
@@ -343,15 +349,15 @@ for it yet, you can use the following instructions: ::
    apt-get -y install <RPM>
 
 
-Releasing RPMs to ``comp.pre`` and ``comp``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Requesting to release COMP RPMs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Fork `cmsdist` in github, clone it from your private github account and
-push your spec changes there (i.e. either to the `comp` or the `comp_gcc481`
-branches). Then send a pull request to merge them into
-the correspinding `comp branch of cmsdist <https://github.com/cms-sw/cmsdist/tree/comp>`_,
-or into the `comp_gcc481 branch <https://github.com/cms-sw/cmsdist/tree/comp_gcc481>`_,
-depending if your changes are for SLC5 or SLC6/OSX, respectively.
+push your spec changes there (i.e. either to the `comp_gcc481` or the
+`comp_gcc493` branches). Then send a pull request to merge them into
+the correspinding `comp_gcc481 branch of cmsdist <https://github.com/cms-sw/cmsdist/tree/comp_gcc481>`_,
+or into the `comp_gcc493 branch <https://github.com/cms-sw/cmsdist/tree/comp_gcc493>`_,
+depending on your target architecture.
 
 See `Creating feature branches and making a pull request <dev-git.html>`_
 for detailed instructions if you are not familiar with GIT.
@@ -367,11 +373,16 @@ we might ignore it if we judge it can disrupt anything important.
 The pull requests will then be tested automatically by the build-agent, which
 will post the result as a comment and change the status of the pull request
 accordingly to the build result. If it fails, it usually means the changes could
-not be merged or the build itself failed. You can check the build-agent logs
-to find out what was wrong.
+not be merged or the build itself failed. You can check the build-agent log as
+pointed by the test results to find out what went wrong.
 
 If you later fix the problem, or simply update the pull request with more
 commits, the build-agent should detect the changes and re-test them. You
 don't need to close the pull request and open a new one. It is enough to push
 your changes to the same source branch on your forked copy of the git repository
 in github.
+
+However, if in the meantime your PR has been approved by the COMP
+release managers and pushed upstream, then **do not update** anymore the PR.
+Instead, close it (if not yet done) and re-do the process from the beginning,
+making sure your source branch contains the updated changes pushed upstream.

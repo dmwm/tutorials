@@ -3,6 +3,10 @@
 Developing against RPMs
 -----------------------
 
+**This tutorial was reviewed on 2015-07-23. If you find problems or
+need help, send to `hn-cms-webInterfaces`.**
+
+
 Install and start the server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -10,10 +14,10 @@ Create a development environment as per `<vm-setup.html>`_
 instructions and deploy your service as usual. We will use SiteDB
 as an example server for this guide::
 
-    (VER=HG1408a REPO="-r comp=comp.pre" A=/data/cfg/admin;
-     PKGS="admin/devtools frontend sitedb/legacy";
+    (VER=HG1509a REPO="comp.pre" A=/data/cfg/admin;
+     PKGS="admin/devtools frontend sitedb";
      cd /data;
-     $A/InstallDev -R comp@$VER -s image -v $VER -a $PWD/auth $REPO -p "$PKGS")
+     $A/InstallDev -R comp@$VER -s image -v $VER -a $PWD/auth -r comp=$REPO -p "$PKGS")
 
     (A=/data/cfg/admin; cd /data; $A/InstallDev -s start)
 
@@ -32,19 +36,13 @@ Above ``$VER`` is the base configuration you are developing against. Usually thi
 should be the current pre-production release, which is always documented in the
 monthly "CMSDIST validation" ticket and announced in the webInterfaces forum.
 
-For this particular application, you'd normally deploy the ``legacy`` variant
-as shown above. Not all applications have variants, you need to know the
-application to know what should normally be deployed.
-
-As usual you can choose a different RPM repository with
-"``REPO='-r comp=comp.pre.me'``", or override the version to be installed
-by using ``sitedb@2.4.1-rc1/legacy`` to install 2.4.1-rc1 instead of whatever
-had been included in the release series ``$VER``. This feature will be used later
-in this development cycle to test your candidate RPMs.
+As usual you can choose a different RPM repository by setting REPO, for
+instance, with "``REPO=comp.pre.you``".
 
 Finally, please note the above procedure shall detect the underlying
 architecture automatically, depending if you running on SLC5/SLC6 or OSX.
-It might be the case, however, that you testing a new architecture (i.e. due to
+It might be the case, however, that if you are testing a new architecture
+(i.e. due to
 a new gcc version). In these cases, or whenever the default architecture is
 not correct, you should use the ``-A <arch>`` option on the ``InstallDev``
 commands. For instance, you'd currently use ``-A slc6_amd64_gcc481`` for
@@ -212,18 +210,17 @@ in our patches, as temporary stg commits at the head::
 Now push the tree to the build machine; remove the ``-n`` option when
 you are comfortable this will do the right thing::
 
-    ssh vocms106.cern.ch mkdir -p /build/$USER/sitedb
-    rsync -nzcav --delete ./ vocms106.cern.ch:/build/$USER/sitedb/
+    ssh vocms022.cern.ch mkdir -p /build/$USER/sitedb
+    rsync -nzcav --delete ./ vocms022.cern.ch:/build/$USER/sitedb/
 
-On a separate shell window, login to the build server, here vocms106,
+On a separate shell window, login to the build server, here vocms022,
 and check out ``cmdist`` and ``pkgtools`` according to the $VER you are using.
-See the `DMWM builds page
-<https://twiki.cern.ch/twiki/bin/view/CMS/DMWMBuilds>`_ to find out
+See the `DMWM build instructions  <dmwm-build.html>`_ to find out
 which build server to connect to and the ``pkgtools`` tag to use.::
 
     cd /build/$USER
-    (git clone -b V00-21-XX https://github.com/cms-sw/pkgtools.git && cd pkgtools && git reset --hard b174441c2295f1b30c5ff6494)
-    git clone -b comp https://github.com/cms-sw/cmsdist.git
+    (git clone -b V00-22-XX https://github.com/cms-sw/pkgtools.git && cd pkgtools && git reset --hard 434bf060200793b0120e0027f)
+    git clone -b comp_gcc481 https://github.com/cms-sw/cmsdist.git
     head -1 cmsdist/sitedb.spec
       # mine outputs: '### RPM cms sitedb 2.4.0'
 
@@ -235,7 +232,7 @@ git repository we replicated to the build system::
 
     $ vi cmsdist/sitedb.spec
       -> ### RPM cms sitedb 2.4.1-rc1
-      -> Source1: git:/build/lat/sitedb?obj=master/0e019b2&export=%n&output=/%n.tar.gz
+      -> Source1: git:/build/diego/sitedb?obj=master/0e019b2&export=%n&output=/%n.tar.gz
 
 Note above the ``obj=master/0e019b2`` which references the commit from our
 local git tree's stg patch stack. This is still all work in progress not
@@ -247,7 +244,7 @@ can download it.
 Now let's build this against ``comp.pre`` RPM repository::
 
     pkgtools/cmsBuild -c cmsdist --repository comp.pre \
-      -a slc5_amd64_gcc461 --builders 8 -j 5 --work-dir w \
+      -a slc6_amd64_gcc481 --builders 8 -j 5 --work-dir w \
       build comp
 
 If all goes well the output will be like this::
@@ -259,14 +256,14 @@ If all goes well the output will be like this::
     [1336684685.75] Checking repository for previous built cms+sitedb-webdoc+2.4.1-rc1.
     No more packages to build. Waiting for all build threads to complete their job.
 
-Next we upload this RPM to ``comp.pre.me`` private repository, where the *.me*
+Next we upload this RPM to ``comp.pre.you`` private repository, where the *.you*
 is your CERN AFS login account::
 
     pkgtools/cmsBuild -c cmsdist --repository comp.pre \
-      -a slc5_amd64_gcc461 --builders 8 -j 5 --work-dir w --upload-user=$USER \
-      upload comp
+      -a slc6_amd64_gcc493 --builders 8 -j 5 --work-dir w \
+      upload comp --upload-user=$USER
 
-Note that ``comp.pre.me`` is automatically implied from ``--repository comp.pre``.
+Note that ``comp.pre.you`` is automatically implied from ``--repository comp.pre``.
 You should **not** tell it explicitly to the ``--repository`` argument.
 
 If the upload succeeds, the output will be something like::
@@ -281,13 +278,13 @@ If the upload succeeds, the output will be something like::
 
 We can now use the private RPM repository and the uploaded RPM for installation.
 Just go back to the beginning of this tutorial and override the repository name
-with ``REPO="-r comp=comp.pre.$USER"`` and the service version with
-``sitedb@2.4.1-rc1/legacy``. That is::
+with ``REPO="comp.pre.$USER"`` and the release VER with ``VER=HG1509a-comp``.
+That is::
 
     (A=/data/cfg/admin; cd /data; $A/InstallDev -s stop; crontab -r; killall python)
 
-    (VER=HG1408a REPO="-r comp=comp.pre.diego" A=/data/cfg/admin;
-     PKGS="admin/devtools frontend sitedb@2.4.1-rc1/legacy";
+    (VER=HG1509a-comp REPO="-r comp=comp.pre.diego" A=/data/cfg/admin;
+     PKGS="admin/devtools frontend sitedb";
      cd /data;
      $A/InstallDev -R comp@$VER -s image -v $VER -a $PWD/auth $REPO -p "$PKGS")
 
@@ -295,7 +292,7 @@ with ``REPO="-r comp=comp.pre.$USER"`` and the service version with
 
 You can now test it, maybe iterate back to `Modify code and rebuild`_ to
 update the patches and re-patch the server, then rebuild RPMs each time
-bumping the release candidate ``-rcN`` number.
+bumping the release VER with the ``-comp``, ``-comp2``, ``-compN`` sufix.
 
 Obviously at the same time you may be developing accompanying patch stack
 of changes to the ``deployment`` tree. Just make sure you set $A to point

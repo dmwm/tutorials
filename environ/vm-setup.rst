@@ -4,6 +4,10 @@ Virtual machine setup
 CERN virtual machine
 ^^^^^^^^^^^^^^^^^^^^
 
+**The instructions in this section were last reviewed on 2015-07-23. If you notice
+something is broken, or if you need help, please ask on the ``hn-cms-webInterfaces``
+forum.**
+
 1. Request a VM from the CERN Openstack service 
 
    Go to `openstack.cern.ch <https://openstack.cern.ch/>`_, request
@@ -19,7 +23,7 @@ CERN virtual machine
      You can opt for a larger flavor, including ``win*`` ones,
      provided you don't exceed your overall quota.
    * Boot source: boot from image
-   * Image name: SLC5 (or SLC6) CERN Server - x86_64 (choose the latest snapshot version)
+   * Image name: SLC6 (or SLC5) CERN Server - x86_64 (choose the latest snapshot version)
 
    After submitting the request, wait for the machine to build. Give it a few
    minutes and then check it is ready by looking at the console through openstack
@@ -33,18 +37,18 @@ CERN virtual machine
    It requests a host certificate using your ``~/.globus/user{cert,key}.pem``,
    so make sure those files are up to date. While reading your private key,
    it asks for your password. If your certificate was issued by an authority
-   other than CERN CA, `associate your CERN account to the certificate
-   <https://ca.cern.ch/ca/Certificates/MapCertificate.aspx>`_ before attempting
-   to run this step. 
+   other than CERN CA, `map a non-CERN certificate to your account
+   <https://resources.web.cern.ch/resources/Manage/Accounts/MapCertificate.aspx>`_
+   before attempting to run this step. 
 
    The ``Deploy`` command below will also check if it is possible
    to resize the current root partition on the fly, asking for your confirmation for
-   doing so or skip. This is recommended because the default SLC5/6 installations do not size
+   doing so or skip. This is recommended because the default SLC6/5 installations do not size
    partitions to use the entire allocated disk. It is also useful if you later
    resize the VM to a different flavor (i.e. with more disk space). Note, however,
    the partition resizing procedure is not very reliable, so do **never**, ever,
    run it on a production server VM, nor expect it to work for VM images other
-   than the SLC5/6 ones. ::
+   than the SLC6/5 ones. ::
 
        sudo -l
        sudo yum -y install git.x86_64
@@ -101,7 +105,7 @@ CERN virtual machine
        This is a development server for CMS web services and requires use of
        grid proxy certificates.
 
-       /DC=ch/DC=cern/OU=computers/CN=HOSTNAME
+       /DC=ch/DC=cern/OU=computers/CN=HOSTNAME.cern.ch
 
        Regards,
        Your Name
@@ -162,44 +166,42 @@ CERN virtual machine
 7. Software installation
 
    The following installs standard multi-account setup using the
-   deployment/configuration from the ``HG1503c`` release, and the corresponding
+   deployment/configuration from the ``HG1509a`` release, and the corresponding
    RPMs from the ``comp.pre`` repository. You may pick up any release tag you need.
    The list of comp release tags can be found `here <https://github.com/dmwm/deployment/tags>`_.
 
    Note you will be asked for the privkey passphrase in case your service
    requires a proxy certificate to work.
 
-   If you did not do *step 6*, **drop the ``-a $PWD/auth`` option**. ::
+   If you set up authentication in *step 6*, **add the ``-a $PWD/auth`` option** in
+   the ``InstallDev`` command below. ::
 
     # Get the configuration
-    (cd /data; git clone git://github.com/dmwm/deployment.git cfg && cd cfg && git reset --hard HG1503c)
+    (cd /data; git clone git://github.com/dmwm/deployment.git cfg && cd cfg && git reset --hard HG1509a)
 
-    # Use "-R cmsweb@$VER" instead of "-R comp@$VER" below for HG13* or older tags
-    (VER=HG1503c REPO="-r comp=comp.pre" A=/data/cfg/admin;
+    # Deploy services
+    (VER=HG1509a REPO="comp.pre" A=/data/cfg/admin;
      cd /data;
-     $A/InstallDev -R comp@$VER -s image -v $VER -a $PWD/auth $REPO -p "admin frontend das mongodb")
+     $A/InstallDev -R comp@$VER -s image -v $VER -r comp=$REPO -p "admin frontend das mongodb")
 
+    # start / status / stop
     (A=/data/cfg/admin; cd /data; $A/InstallDev -s start)
 
    To install the full set of services use the ``-p`` argument with:
-   ``admin frontend couchdb bigcouch das dbs dqmgui mongodb phedex
+   ``admin frontend couchdb confdb bigcouch das dbs dqmgui mongodb phedex
    sitedb reqmgr workqueue reqmon alertscollector
    crabserver crabcache dmwmmon asyncstageout t0wmadatasvc dbsmigration
    t0_reqmon acdcserver reqmgr2 gitweb``
 
-   Note that since ``HG1408a`` the default architecture for SLC6 is
-   ``slc6_amd64_gcc481``, while it is still ``slc5_amd64_gcc461`` for
-   SLC5. When deploying older releases on
-   SLC6, however, you must explicitly
-   use the ``-A slc6_amd64_gcc481`` option to the above ``InstallDev``.
-   The default architectures may change in the future, or RPMs for them
-   may not yet be available depending on the repository you are using. Read
-   `CMS RPMs and repositories <dmwm-build.html#cms-rpms-and-repositories>`_
-   and, if in doubt, always specify the ``-A <arch>`` to select the proper
-   architecture.
+   Note that as per 2015-July the default (production) architecture
+   is ``slc6_amd64_gcc481``. If you need to use a different one,
+   you must specify it with ``-A`` and point to the correct repository
+   correctly with ``$REPO``. For instance, to install
+   the gcc493 arch, switch is ships python2.7, you'd use: ::
 
-   The production machinery is now in SLC6, so new releases are likely
-   to appear only for SLC6. The last SLC5 release was ``HG1410e``.
+    (VER=HG1509a REPO="comp" A=/data/cfg/admin;
+     cd /data;
+     $A/InstallDev -R comp@$VER -s image -v $VER -r comp=$REPO -p "admin frontend das mongodb")
 
 
 8. Proxy renewal
@@ -239,13 +241,13 @@ CERN virtual machine
    command will wipe out almost everything on /data - **MAKE SURE** you run
    it in right place, and want to run it! ::
 
-    ([ "$(hostname)" = "mydevvmname" ] || exit;
+    ([ "$(hostname -s)" = "mydevvmname" ] || exit;
      echo "Deleting...";
      cd /data; 
      $PWD/cfg/admin/InstallDev -s stop;
      crontab -r;
      killall python;
-     sudo rm -fr [^aceu]* .??* current enabled)
+     sudo rm -rf srv)
 
 
 11. Develop server
