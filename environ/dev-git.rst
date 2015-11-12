@@ -1,6 +1,10 @@
 Working with git for CMS DMWM projects
 --------------------------------------
 
+**The instructions in this tutorial were last reviewed on 2015-11-12. If you notice
+something is broken, or if you need help, please ask on the ``hn-cms-webInterfaces``
+forum.**
+
 Within the distributed nature of GIT, every repository checkout is
 a full copy of the repository content and its history.
 We don't have any central server and all the development
@@ -23,43 +27,52 @@ documentation (wiki).
 
 In order to send a pull request, you must first have created your own
 github account and set the SSH keys you'll use when pushing your changes
-to it. In the instructions below, we call your github account 'mygit'.
+to it.
+
+In the instructions below, we call your github account 'mygit', the
+github account hosting the official repo 'officialgit', the repository
+'therepo' (i.e. 'cmsdist' or 'deployment'), and the target branch 'tbranch'
+(i.e. 'master' on deployment, 'comp_gcc481' on cmsdist).
 
 
 Doing changes and sending a pull request
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-1. Locate the code repository you want to contribute. In this example
-   we will use the
-   `'deployment' repository from 'dmwm' user <https://github.com/dmwm/deployment>`_.
+1. Locate the code repository you want to contribute. For instance:
+   `'deployment' repository from 'dmwm' user <https://github.com/dmwm/deployment>`_, 
+   or `'cmsdist' repository from 'cms-sw' user <https://github.com/cms-sw/cmsdist>`_.
    Then fork the repository to your own account by clicking in the 'fork'
    button on the top right corner of this project area in github. As
    a result, you'll get a copy of the repository under your 'mygit' account
    in github.
 
-2. Clone the repository from github/mygit the to your local development area,
-   and set up 'upstream' git remote for the original repo, and a tracking branch
-   'upstream' for the upstream's master branch. ::
+2. Clone the repository from github/mygit to your local development area,
+   set up 'upstream' git remote for the official repo, and a tracking branch
+   'up_tbranch' for the upstream's target branch. ::
 
        cd My/Dev/Area
-       git clone git@github.com:mygit/deployment.git
-       cd deployment
+       git clone git@github.com:mygit/therepo.git
+       cd therepo
 
-       git remote add upstream git://github.com/dmwm/deployment.git
+       # local 'tbranch' tracks mygit/therepo/tbranch
+       git checkout tbranch
+
+       git remote add upstream git://github.com/officialgit/therepo.git
        git fetch upstream
-       git branch --track upmaster remotes/upstream/master
+       # local 'up_tbranch' tracks officialgit/therepo/tbranch
+       git branch --track up_tbranch remotes/upstream/tbranch
 
-3. To start a new development, first update the 'upmaster' branch to
+3. To start a new development, first update the 'up_tbranch' branch to
    current tip of the upstream repository. ::
 
-       git checkout upmaster
+       git checkout up_tbranch
        git pull
 
 4. Create a new feature branch for your development. We'll call this
-   'hg1305-reqmgr-update', obviously you should pick a name appropriate
+   'hg1512-reqmgr-update', obviously you should pick a name appropriate
    for your changes. ::
 
-       git checkout -b hg1305-reqmgr-update
+       git checkout -b hg1512-reqmgr-update
 
 5. Modify the code and commit. If you like using 'stg', you can and
    should use it here to manage your patch stack. In that case, at the
@@ -67,30 +80,32 @@ Doing changes and sending a pull request
    the end when you are ready to submit, do 'stg commit -a' to commit
    the patches on your branch. The following assumes raw git use. ::
 
-       vi reqmgr/deploy
-       git add reqmgr/deploy
+       vi reqmgr.any.file
+       git add reqmgr.any.file
        git commit -m "Incredibly awesome changes."
 
-6. Merge with upstream, in case there were changes in the mean time.
-   Resolve any conflicts which arise. Note that you go to the tracking
+6. Merge with upstream. In case there were changes in the mean time,
+   resolve any conflicts which arise. Note that you go to the tracking
    branch to do the pull, and merge locally from that branch to your
-   development branch. You should also keep your 'master' branch up to
-   date so on github web site it's easier to see the differences in
-   your branch. In this example, you never commit anything to 'master',
-   you just merge changes from 'upmaster'. ::
+   development branch. You should also keep your local 'tbranch'
+   up to date so on github web site it's easier to see the differences in
+   your branch. ::
 
-       git checkout upmaster
+       # Get changes from tracked branch, if any
+       git checkout up_tbranch
        git pull
 
-       git checkout master
-       git merge upmaster
+       # Update local tbranch
+       git checkout tbranch
+       git merge up_tbranch
 
-       git checkout hg1305-reqmgr-update
-       git merge upmaster
+       # Update the feature branch too
+       git checkout hg1512-reqmgr-update
+       git merge up_tbranch
 
 7. Push the changes to your github account. The 'origin' is where you did
    the initial clone, i.e. the 'deployment' repository in *your* github
-   account 'mygit'. You should push both your 'master' (see above why) and all the
+   account 'mygit'. You should push both your 'tbranch' (see above why) and all the
    feature branches you worked on. This is your last chance to review the
    changes before publishing them. ::
 
@@ -100,22 +115,53 @@ Doing changes and sending a pull request
        # review with full details, including patches
        git log -p
 
-       git push origin master hg1305-reqmgr-update
+       # push tbranch and hg1512-reqmgr-update branches to mygit/therepo
+       git push origin tbranch hg1512-reqmgr-update
 
-8. At github web site, select your account's 'deployment' repository, and
-   the 'hg1305-reqmgr-update' branch, and follow the pull request recipe
-   to create a pull request for the 'deployment' project in 'dmwm'.
-   See `<http://help.github.com/send-pull-requests/>`_.
+8. Do the pull request. At github web site, select your account's 'therepo'
+   repository, click 'Pull requests', and then 'New pull request'. The 'base'
+   is where you want the changes applied, and 'head' contains what you want
+   to apply. That is, `base fork: officialgit/therepo`, `base: tbranch`,
+   and `head fork: mygit/therepo`, `compare: hg1512-reqmgr-update`. Click
+   'Create pull request', fill up the PR information and submit it.
+   See `<http://help.github.com/send-pull-requests/>`_ for more instructions
+   about creating the pull requests if needed.
 
-   The dmwm managers will then review your changes and merge them to the target
-   branch of dmwm/deployment (usually it is the 'master') you selected when
-   filling up the pull request.
 
-   Done! You got your changes contributed to the target project!
+The official repo managers will then review your changes and merge them
+to the target branch you selected when filling up the pull request. As
+part of the review, they might do changes, fixes, cleanups, change commit
+messages, etc. Do not assume they will pick the changes as they are.
+
+On some cases you might be asked to do changes, fixes, etc. In that
+case, just push your new commits to the hg1512-reqmgr-update branch
+in this example: ::
+
+       git checkout hg1512-reqmgr-update
+       vi reqmgr.any.other.file
+       git add reqmgr.any.other.file
+       git commit -m "Yet another incredibly awesome change."
+       git push origin hg1512-reqmgr-update
+
+The pull request will automatically pick the changes from that
+branch and show up to the official repo managers. You don't need
+to close the PR and create another one.
+
+Once the changes are approved and merged, the pull request will be
+closed. Once you see they are pushed upstream, **please don't update
+the hg1512-reqmgr-update branch anymore** if you realize you missed
+to include something. Instead, restart from step 3 above (get updates,
+create feature branch, etc), therefore creating a new PR at the end.
+
+Once your changes are pushed upstream, you can delete any feature
+branches you've created to keep your mygit/therepo clone clean.
 
 
 Applying a pull request after a review
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**The instructions in this section might be outdated.
+Please contribute back your corrections, in case of any.**
 
 1. First review the pull request on github's web site. It has all the tools
    we previously used on SVN Trac for commenting and iterating on patches.
@@ -160,6 +206,10 @@ Applying a pull request after a review
 
 Converting CMSDMWM SVN repository to github git repository
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**The instructions in this section are not being reviewed
+since all projects have already migrated from SVN. We keep
+them here anyhow.**
 
 1. Clone the SVN repository using git, as per PatchManagement instructions.
    If you already have such a working area, you can use it, but make sure
@@ -208,6 +258,10 @@ Converting CMSDMWM SVN repository to github git repository
 
 Converting filtered CMSDMWM SVN repository
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**The instructions in this section are not being reviewed
+since all projects have already migrated from SVN. We keep
+them here anyhow.**
 
 If you want to execute the instructions above, but want to split your repository
 so it becomes multiple git repositories, you'll want to use 'git filter-branch'
