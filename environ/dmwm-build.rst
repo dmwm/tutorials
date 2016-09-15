@@ -64,8 +64,9 @@ the following table to figure out which
 ===================================================== ====================================================================
 **cmsdist**                                           **pkgtools**              
 ----------------------------------------------------- --------------------------------------------------------------------
-anything from the comp_gcc481 or comp_gcc493 branches on the V00-22-XX branch, stick with commit 434bf060200793b0120e0027f
-HG1305* and newer, or the HEAD of the comp branch     on the V00-21-XX branch, stick with commit b174441c2295f1b30c5ff6494 
+HG1609* and newer                                     use HEAD of the V00-30-XX branch
+branches comp_gcc481 or comp_gcc493 up to HG1608*     on the V00-22-XX branch, stick with commit 434bf060200793b0120e0027f
+HG1305* and newer on the comp branch                  on the V00-21-XX branch, stick with commit b174441c2295f1b30c5ff6494 
 HG1205* to HG1304*                                    use HEAD of the V00-20-XX branch
 HG120[1234]* and older tags                           not supported anymore
 ===================================================== ====================================================================
