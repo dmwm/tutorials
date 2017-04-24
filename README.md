@@ -24,7 +24,7 @@ Typically, the official deployment is:
     (set -e;
      git clone git://github.com/dmwm/tutorials.git;
      cd tutorials/;
-     source /build/dmwmbld/srv/state/dmwmbld/builds/comp_gcc481/w/slc6_amd64_gcc481/cms/wmcore-devtools/1.2-comp4/etc/profile.d/init.sh;
+     source /build/dmwmbld/srv/state/dmwmbld/builds/comp_gcc481/w/slc6_amd64_gcc481/cms/wmcore-devtools/1.3/etc/profile.d/init.sh
      make html;
      make twiki;
      kinit cmsweb;
