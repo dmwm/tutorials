@@ -146,13 +146,14 @@ Currently, the comp repositories have RPMs for the following architectures:
 ======================================= =========== ===============
 **ARCH**                                in **comp** in **comp.pre**
 --------------------------------------- ----------- ---------------
-slc6_amd64_gcc493 (upcoming production)      X
-slc6_amd64_gcc481 (current production)                     X
+slc7_amd64_gcc630 (upcoming production)      X
+slc6_amd64_gcc493 (current production)       X
+slc6_amd64_gcc481 (previous production)                    X
 slc6_amd64_gcc461 (deprecated)               X             X
-slc5_amd64_gcc461 (previous production)      X             X
+slc5_amd64_gcc461 (deprecated)               X             X
 slc5_amd64_gcc434 (deprecated)               X             X
 osx106_amd64_gcc461 (deprecated)             X             X
-osx108_amd64_gcc481 (testing)                              X
+osx108_amd64_gcc481 (deprecated)                           X
 ======================================= =========== ===============
 
 Besides the official repositories, there are a bunch of other "private"
